@@ -308,10 +308,7 @@
                             if (index === 0)
                                 return;
 
-                            if (part.length === 0)
-                                return;
-
-                            const commitMessageElement = document.createElement("p");
+                            const commitMessageElement = document.createElement("pre");
                             commitMessageElement.textContent = part;
                             commitMessageElement.classList.add("card-text", "mb-0");
                             commitDetailsBodyElement.appendChild(commitMessageElement);
