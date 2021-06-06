@@ -26,6 +26,8 @@
     let monthNumber = date.getMonth() + 1; // This is 0-based.
     let dateNumber = date.getDate();
 
+    updateURLQuery();
+
     // https://stackoverflow.com/a/16353241
     function isLeapYear(year) {
         return ((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0);
@@ -61,6 +63,7 @@
             year--;
         }
 
+        updateURLQuery();
         createChangelog();
     };
 
@@ -72,6 +75,7 @@
         monthNumber = today.getMonth() + 1; // This is 0-based.
         dateNumber = today.getDate();
 
+        updateURLQuery();
         createChangelog();
     };
 
@@ -88,6 +92,7 @@
             year++;
         }
 
+        updateURLQuery();
         createChangelog();
     };
 
@@ -153,6 +158,16 @@
         tomorrowButton.setAttribute("disabled", "");
     }
 
+    function getISODateString() {
+        const month = monthNumber.toString().padStart(2, "0");
+        const date = dateNumber.toString().padStart(2, "0");
+        return `${year}-${month}-${date}`;
+    }
+
+    function updateURLQuery() {
+        window.history.replaceState(null, null, `?date=${getISODateString()}`);
+    }
+
     async function createChangelog() {
         const currentDate = new Date(year, monthNumber - 1, dateNumber);
         dateElement.textContent = `For ${currentDate.toDateString()}`;
@@ -173,12 +188,9 @@
                 return jsonResponse.length !== numCommitsPerPage;
             }
 
-            const month = monthNumber.toString().padStart(2, '0');
-            const date = dateNumber.toString().padStart(2, '0');
-
             const commits = await paginate("https://api.github.com/repos/SerenityOS/serenity/commits", {
-                since: `${year}-${month}-${date}T00:00:00Z`,
-                until: `${year}-${month}-${date}T23:59:59Z`
+                since: `${getISODateString()}T00:00:00Z`,
+                until: `${getISODateString()}T23:59:59Z`
             }, shouldStop);
 
             loadingIndicator.classList.add("d-none");
