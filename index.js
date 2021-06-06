@@ -19,7 +19,7 @@
 
     let year = today.getFullYear();
     let monthNumber = today.getMonth() + 1; // This is 0-based.
-    let dateNumber = today.getDate() - 1;
+    let dateNumber = today.getDate();
 
     // https://stackoverflow.com/a/16353241
     function isLeapYear(year) {
