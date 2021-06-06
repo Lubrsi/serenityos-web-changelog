@@ -222,9 +222,13 @@
                     const commitTitleElement = document.createElement("a");
                     const messageParts = commit.commit.message.split('\n');
 
-                    const titleMessage = titleMessageRegex.exec(messageParts[0])[1];
+                    if (category !== "Uncategorized") {
+                        const titleMessage = titleMessageRegex.exec(messageParts[0])[1];
+                        commitTitleElement.textContent = titleMessage;
+                    } else {
+                        commitTitleElement.textContent = messageParts[0];
+                    }
 
-                    commitTitleElement.textContent = titleMessage;
                     commitTitleElement.href = commit.html_url;
                     commitTitleElement.target = "_blank";
                     commitTitleElement.setAttribute("rel", "noopener noreferrer");
