@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>SerenityOS Changelog</title>
+        <link rel="shortcut icon" type="image/png" href="ladyball.png" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+        <style>
+            :root {
+                --color-highlight: #1d60df;
+                --color-text: #312f2f;
+                --color-background: #f6fcfc;
+                --color-background-alt: #dfecec;
+            }
+
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --color-highlight: #03a9f4;
+                    --color-text: #dddddd;
+                    --color-background: #191922;
+                    --color-background-alt: #262635;
+                }
+            }
+
+            body {
+                background: var(--color-background);
+                color: var(--color-text);
+            }
+
+            .details-button {
+                font-size: 0.8rem;
+            }
+
+            ul > li:not(:first-child) {
+                margin-top: 0.5rem;
+            }
+
+            li {
+                list-style-type: none;
+            }
+
+            ul {
+                padding-left: 1rem;
+            }
+
+            .card {
+                background: var(--color-background-alt);
+            }
+
+            code {
+                display: inline-block;
+                padding: 0 2px;
+                border-radius: 4px;
+                font-size: 1rem;
+                background: var(--color-background-alt);
+            }
+        </style>
+    </head>
+    <body>
+        <noscript>
+            <div class="alert alert-danger text-center">
+                <strong>Please enable JavaScript.</strong>
+            </div>
+        </noscript>
+
+        <div class="container mt-5 justify-content-center">
+            <h1 class="text-center">SerenityOS Changelog</h1>
+            <h3 class="text-center" id="date"></h3>
+
+            <div class="text-center mb-3">
+                <div class="btn-group justify-content-center" role="group">
+                    <button class="btn btn-primary" id="yesterday-button" disabled>
+                        <i class="bi-arrow-left"></i>
+                        Yesterday
+                    </button>
+
+                    <button class="btn btn-primary" id="today-button" disabled>
+                        <i class="bi-circle-fill"></i>
+                        Today
+                    </button>
+
+                    <button class="btn btn-primary" id="tomorrow-button" disabled>
+                        Tomorrow
+                        <i class="bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <p>
+                This is an easy-to-read version of the <a href="https://github.com/SerenityOS/serenity/commits/master" target="_blank" rel="noopener noreferrer">SerenityOS commit log.</a>
+                It fetches a list of commits for a given day and categorises the commits based on the subsystem they target.
+            </p>
+
+            <p>
+                The source code for this website can be found <a href="https://github.com/Lubrsi/serenityos-web-changelog" target="_blank" rel="noopener noreferrer">here.</a>
+            </p>
+
+            <p>
+                If you wish to discuss SerenityOS and its development, feel free to get in touch on the
+                <a href="https://discord.com/invite/29gCcKsXkF" target="_blank" rel="noopener noreferrer">SerenityOS Discord server.</a>
+                (<code>#serenityos</code> or <code>#development</code>)
+            </p>
+
+            <div class="d-flex align-items-center" id="loading-indicator">
+                <div class="spinner-border" role="status"></div>
+                <span class="ms-3">Loading...</span>
+            </div>
+
+            <div class="alert alert-danger d-flex align-items-center justify-content-center d-none" id="load-failed">
+                Failed to fetch commits.
+                <button class="btn btn-primary ms-3" id="retry">
+                    <i class="bi-arrow-repeat"></i>
+                    Retry
+                </button>
+            </div>
+
+            <div class="alert alert-primary text-center d-none" id="no-commits">
+                No commits for this date. Try another date.
+            </div>
+
+            <main id="changelog">
+            </main>
+
+            <p class="text-center m-5">
+                Made by <a href="mailto:lukew@serenityos.org">Luke Wilde.</a> (<code>@Lubrsi</code> on <a href="https://discord.com/invite/29gCcKsXkF" target="_blank" rel="noopener noreferrer">Discord</a>)
+            </p>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" integrity="sha256-PZEg+mIdptYTwWmLcBTsa99GIDZujyt7VHBZ9Lb2Jys=" crossorigin="anonymous" async></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script>
+        <script src="index.js"></script>
+    </body>
+</html>
