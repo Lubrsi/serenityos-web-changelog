@@ -65,7 +65,7 @@
 
         year = today.getFullYear();
         monthNumber = today.getMonth() + 1; // This is 0-based.
-        dateNumber = today.getDate() - 1;
+        dateNumber = today.getDate();
 
         createChangelog();
     };
