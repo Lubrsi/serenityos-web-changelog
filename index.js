@@ -15,11 +15,16 @@
     const titleMessageRegex = /: (.*)/; // A regex is used instead of splitting in case the title has multiple ':'.
     const invalidSelectorCharacters = /(>|\+|\/)/; // FIXME: This is definitely not a complete regex.
 
-    let today = new Date();
+    const params = new URLSearchParams(window.location.search);
+    const dateParam = params.get("date");
+    let date = new Date(dateParam);
+    if (dateParam === null || isNaN(date)) {
+        date = new Date();
+    }
 
-    let year = today.getFullYear();
-    let monthNumber = today.getMonth() + 1; // This is 0-based.
-    let dateNumber = today.getDate();
+    let year = date.getFullYear();
+    let monthNumber = date.getMonth() + 1; // This is 0-based.
+    let dateNumber = date.getDate();
 
     // https://stackoverflow.com/a/16353241
     function isLeapYear(year) {
@@ -61,7 +66,7 @@
 
     todayButton.onclick = () => {
         // May have potentially gone past midnight.
-        today = new Date();
+        const today = new Date();
 
         year = today.getFullYear();
         monthNumber = today.getMonth() + 1; // This is 0-based.
