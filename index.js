@@ -263,7 +263,8 @@
                             authorImage.classList.add("lazyload", "img-fluid", "rounded");
                             authorImage.width = 20;
                             authorImage.height = 20;
-                            authorImage.setAttribute("data-src", commit.author.avatar_url);
+                            // Use the small, 20x20 version as we limit the image size to 20x20.
+                            authorImage.setAttribute("data-src", commit.author.avatar_url + "&s=20");
                             committerDetailsElement.appendChild(authorImage);
 
                             authorName = document.createElement("span");
@@ -286,7 +287,8 @@
 
                         const committerImage = document.createElement("img");
                         committerImage.classList.add("lazyload", "img-fluid", "rounded");
-                        committerImage.setAttribute("data-src", commit.committer.avatar_url);
+                        // Use the small, 20x20 version as we limit the image size to 20x20.
+                        committerImage.setAttribute("data-src", commit.committer.avatar_url + "&s=20");
                         committerImage.width = 20;
                         committerImage.height = 20;
                         committerDetailsElement.appendChild(committerImage);
