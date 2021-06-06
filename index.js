@@ -305,12 +305,16 @@
 
                     if (messageParts.length > 1) {
                         messageParts.forEach((part, index) => {
-                            if (index === 0)
+                            // Skip the commit message and 2 newlines.
+                            if (index < 2)
                                 return;
 
                             const commitMessageElement = document.createElement("pre");
                             commitMessageElement.textContent = part;
-                            commitMessageElement.classList.add("card-text", "mb-0");
+
+                            if (part.length !== 0)
+                                commitMessageElement.classList.add("card-text", "mb-0");
+
                             commitDetailsBodyElement.appendChild(commitMessageElement);
                         });
                     } else {
