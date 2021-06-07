@@ -13,7 +13,7 @@
     const numCommitsPerPage = 70; // This is just a guess based on how many commits we have a day.
     const categoryRegex = /(^\S[^"]*?):/;
     const titleMessageRegex = /: (.*)/; // A regex is used instead of splitting in case the title has multiple ':'.
-    const invalidSelectorCharacters = /([>+\/.])/; // FIXME: This is definitely not a complete regex.
+    const invalidSelectorCharacters = /([>+\/.])/g; // FIXME: This is definitely not a complete regex.
 
     const params = new URLSearchParams(window.location.search);
     const dateParam = params.get("date");
