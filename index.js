@@ -252,7 +252,9 @@
                     commitTitleElement.setAttribute("rel", "noopener noreferrer");
                     commitListEntryElement.appendChild(commitTitleElement);
 
-                    const detailsId = `${category}${index}`.replace(invalidSelectorCharacters, '');
+                    let detailsId = `${category}${index}`.replace(invalidSelectorCharacters, '');
+                    if (/^\d/.test(detailsId)) // Selectors starting with a number are invalid. Just prepend an 'i' to counteract it.
+                        detailsId = 'i' + detailsId;
 
                     const detailsButtonElement = document.createElement("button");
                     detailsButtonElement.classList.add("btn", "btn-primary", "details-button", "ms-2");
