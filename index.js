@@ -54,7 +54,8 @@
         dateNumber--;
 
         if (dateNumber <= 0) {
-            dateNumber = getLastDayOfMonth(monthNumber - 1 > 0 ? year : year - 1, monthNumber - 1);
+            const switchingYear = monthNumber - 1 <= 0;
+            dateNumber = getLastDayOfMonth(!switchingYear ? year : year - 1, !switchingYear ? monthNumber - 1 : 12);
             monthNumber--;
         }
 
