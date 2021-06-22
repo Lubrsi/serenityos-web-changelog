@@ -35,7 +35,7 @@
 
     // https://stackoverflow.com/a/16353241
     function isLeapYear(year) {
-        return ((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0);
+        return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
     }
 
     function getLastDayOfMonth(year, month) {
@@ -50,7 +50,8 @@
                 return 31;
             case 2: // February
                 return isLeapYear(year) ? 29 : 28;
-            default: // April, June, September, November
+            default:
+                // April, June, September, November
                 return 30;
         }
     }
@@ -60,7 +61,10 @@
 
         if (dateNumber <= 0) {
             const switchingYear = monthNumber - 1 <= 0;
-            dateNumber = getLastDayOfMonth(!switchingYear ? year : year - 1, !switchingYear ? monthNumber - 1 : 12);
+            dateNumber = getLastDayOfMonth(
+                !switchingYear ? year : year - 1,
+                !switchingYear ? monthNumber - 1 : 12
+            );
             monthNumber--;
         }
 
@@ -113,31 +117,30 @@
 
         let firstKey = true;
         for (const key in parameters) {
-            finalUrl += `${firstKey ? '?' : '&'}${key}=${parameters[key]}`;
+            finalUrl += `${firstKey ? "?" : "&"}${key}=${parameters[key]}`;
             firstKey = false;
         }
 
         if (!hasFetch) {
             return new Promise((resolve, reject) => {
-              const xhr = new XMLHttpRequest();
-              xhr.open("GET", finalUrl);
-              xhr.setRequestHeader("Accept", "application/vnd.github.v3+json");
-              // LibWeb does not expose "onload" just yet, but does fire the load event.
-              xhr.addEventListener("load", function () {
-                  if (this.status >= 200 && this.status <= 299)
-                      resolve(JSON.parse(this.responseText))
-                  else
-                      reject();
-              });
-              // LibWeb does not expose "onerror" just yet, but does fire the error event.
-              xhr.addEventListener("error", () => reject());
-              xhr.send();
+                const xhr = new XMLHttpRequest();
+                xhr.open("GET", finalUrl);
+                xhr.setRequestHeader("Accept", "application/vnd.github.v3+json");
+                // LibWeb does not expose "onload" just yet, but does fire the load event.
+                xhr.addEventListener("load", function () {
+                    if (this.status >= 200 && this.status <= 299)
+                        resolve(JSON.parse(this.responseText));
+                    else reject();
+                });
+                // LibWeb does not expose "onerror" just yet, but does fire the error event.
+                xhr.addEventListener("error", () => reject());
+                xhr.send();
             });
         }
 
         return fetch(finalUrl, {
             headers: {
-                "Accept": "application/vnd.github.v3+json"
+                Accept: "application/vnd.github.v3+json",
             },
         });
     }
@@ -156,13 +159,11 @@
                 const jsonResponse = await response.json();
                 finalResponse = finalResponse.concat(jsonResponse);
 
-                if (shouldStop(jsonResponse))
-                    break;
+                if (shouldStop(jsonResponse)) break;
             } else {
                 finalResponse = finalResponse.concat(response);
 
-                if (shouldStop(response))
-                    break;
+                if (shouldStop(response)) break;
             }
 
             pageNumber++;
@@ -209,16 +210,20 @@
         categoryCollapseElements = [];
 
         try {
-            const shouldStop = (jsonResponse) => {
+            const shouldStop = jsonResponse => {
                 // If there's the exact number of commits we requested, we can't know for sure if that's all of them.
                 // This is because the GH API doesn't tell us if there is anymore data, so we just have to fetch the next page.
                 return jsonResponse.length !== numCommitsPerPage;
-            }
+            };
 
-            const commits = await paginate("https://api.github.com/repos/SerenityOS/serenity/commits", {
-                since: `${getISODateString()}T00:00:00Z`,
-                until: `${getISODateString()}T23:59:59Z`
-            }, shouldStop);
+            const commits = await paginate(
+                "https://api.github.com/repos/SerenityOS/serenity/commits",
+                {
+                    since: `${getISODateString()}T00:00:00Z`,
+                    until: `${getISODateString()}T23:59:59Z`,
+                },
+                shouldStop
+            );
 
             loadingIndicator.classList.add("d-none");
             enableDateButtons();
@@ -230,26 +235,28 @@
 
             const categories = [];
 
-            commits.forEach((commit) => {
+            commits.forEach(commit => {
                 const categoryResult = categoryRegex.exec(commit.commit.message);
                 const category = categoryResult ? categoryResult[1] : "Uncategorized";
 
                 const hasCategory = categories[category] !== undefined;
 
-                if (!hasCategory)
-                    categories[category] = [];
+                if (!hasCategory) categories[category] = [];
 
                 categories[category].push(commit);
             });
 
             // For the sort: https://stackoverflow.com/a/45544166
-            const sortedCategories = Object.keys(categories).sort((left, right) => left.localeCompare(right));
+            const sortedCategories = Object.keys(categories).sort((left, right) =>
+                left.localeCompare(right)
+            );
 
-            sortedCategories.forEach((category) => {
+            sortedCategories.forEach(category => {
                 const commits = categories[category];
-                let validSelectorCategory = category.replace(invalidSelectorCharacters, '');
-                if (startsWithNumberRegex.test(validSelectorCategory)) // Selectors starting with a number are invalid. Just prepend an 'i' to counteract it.
-                    validSelectorCategory = 'i' + validSelectorCategory;
+                let validSelectorCategory = category.replace(invalidSelectorCharacters, "");
+                if (startsWithNumberRegex.test(validSelectorCategory))
+                    // Selectors starting with a number are invalid. Just prepend an 'i' to counteract it.
+                    validSelectorCategory = "i" + validSelectorCategory;
 
                 const accordionCollapseId = `${validSelectorCategory}-collapse`;
                 const accordionHeaderId = `${accordionCollapseId}-heading`;
@@ -267,9 +274,15 @@
                 categoryCollapseOpenButtonElement.classList.add("accordion-button");
                 categoryCollapseOpenButtonElement.type = "button";
                 categoryCollapseOpenButtonElement.setAttribute("data-bs-toggle", "collapse");
-                categoryCollapseOpenButtonElement.setAttribute("data-bs-target", `#${accordionCollapseId}`);
+                categoryCollapseOpenButtonElement.setAttribute(
+                    "data-bs-target",
+                    `#${accordionCollapseId}`
+                );
                 categoryCollapseOpenButtonElement.setAttribute("aria-expanded", "true");
-                categoryCollapseOpenButtonElement.setAttribute("aria-controls", accordionCollapseId);
+                categoryCollapseOpenButtonElement.setAttribute(
+                    "aria-controls",
+                    accordionCollapseId
+                );
                 categoryCollapseOpenButtonElement.textContent = category;
                 categoryHeaderElement.appendChild(categoryCollapseOpenButtonElement);
 
@@ -279,7 +292,10 @@
                 categoryCollapseElement.setAttribute("aria-labelledby", accordionHeaderId);
                 categorySectionElement.appendChild(categoryCollapseElement);
 
-                const categoryCollapseBootstrapClass = new bootstrap.Collapse(categoryCollapseElement, { toggle: false });
+                const categoryCollapseBootstrapClass = new bootstrap.Collapse(
+                    categoryCollapseElement,
+                    { toggle: false }
+                );
                 categoryCollapseElements.push(categoryCollapseBootstrapClass);
 
                 const commitListElement = document.createElement("ul");
@@ -288,11 +304,11 @@
 
                 commits.forEach((commit, index) => {
                     const commitListEntryElement = document.createElement("li");
-                    commitListEntryElement.classList.add("d-flex", "align-items-center")
+                    commitListEntryElement.classList.add("d-flex", "align-items-center");
                     commitListElement.appendChild(commitListEntryElement);
 
                     const commitTitleElement = document.createElement("a");
-                    const messageParts = commit.commit.message.split('\n');
+                    const messageParts = commit.commit.message.split("\n");
 
                     if (category !== "Uncategorized") {
                         const titleMessage = titleMessageRegex.exec(messageParts[0])[1];
@@ -306,15 +322,23 @@
                     commitTitleElement.setAttribute("rel", "noopener noreferrer");
                     commitListEntryElement.appendChild(commitTitleElement);
 
-                    const detailsId = `${validSelectorCategory}${index}`.replace(invalidSelectorCharacters, '');
+                    const detailsId = `${validSelectorCategory}${index}`.replace(
+                        invalidSelectorCharacters,
+                        ""
+                    );
 
                     const detailsButtonElement = document.createElement("button");
-                    detailsButtonElement.classList.add("btn", "btn-primary", "details-button", "ms-2");
+                    detailsButtonElement.classList.add(
+                        "btn",
+                        "btn-primary",
+                        "details-button",
+                        "ms-2"
+                    );
                     detailsButtonElement.setAttribute("type", "button");
                     detailsButtonElement.setAttribute("data-bs-toggle", "collapse");
                     detailsButtonElement.setAttribute("data-bs-target", `#${detailsId}`);
                     detailsButtonElement.setAttribute("aria-expanded", "false");
-                    detailsButtonElement.setAttribute("aria-controls", detailsId)
+                    detailsButtonElement.setAttribute("aria-controls", detailsId);
                     detailsButtonElement.textContent = "Details";
                     commitListEntryElement.appendChild(detailsButtonElement);
 
@@ -328,7 +352,11 @@
                     commitDetailsElement.appendChild(commitDetailsBodyElement);
 
                     const committerDetailsElement = document.createElement("h5");
-                    committerDetailsElement.classList.add("card-title", "d-flex", "align-items-center");
+                    committerDetailsElement.classList.add(
+                        "card-title",
+                        "d-flex",
+                        "align-items-center"
+                    );
                     commitDetailsBodyElement.appendChild(committerDetailsElement);
 
                     let authorName;
@@ -340,7 +368,10 @@
                             authorImage.width = 20;
                             authorImage.height = 20;
                             // Use the small, 20x20 version as we limit the image size to 20x20.
-                            authorImage.setAttribute("data-src", commit.author.avatar_url + "&s=20");
+                            authorImage.setAttribute(
+                                "data-src",
+                                commit.author.avatar_url + "&s=20"
+                            );
                             committerDetailsElement.appendChild(authorImage);
 
                             authorName = document.createElement("span");
@@ -353,8 +384,7 @@
                         authorName.textContent = `${commit.commit.author.name} authored`;
                     }
 
-                    if (authorName)
-                        committerDetailsElement.appendChild(authorName);
+                    if (authorName) committerDetailsElement.appendChild(authorName);
 
                     // This occurs if the commit is signed.
                     if (commit.commit.committer.name !== "GitHub") {
@@ -364,7 +394,10 @@
                         const committerImage = document.createElement("img");
                         committerImage.classList.add("lazyload", "img-fluid", "rounded");
                         // Use the small, 20x20 version as we limit the image size to 20x20.
-                        committerImage.setAttribute("data-src", commit.committer.avatar_url + "&s=20");
+                        committerImage.setAttribute(
+                            "data-src",
+                            commit.committer.avatar_url + "&s=20"
+                        );
                         committerImage.width = 20;
                         committerImage.height = 20;
                         committerDetailsElement.appendChild(committerImage);
@@ -381,8 +414,7 @@
                     if (messageParts.length > 1) {
                         messageParts.forEach((part, index) => {
                             // Skip the commit message and 2 newlines.
-                            if (index < 2)
-                                return;
+                            if (index < 2) return;
 
                             commitMessageElement.textContent += part + "\n";
                         });
