@@ -323,20 +323,19 @@
                         committerDetailsElement.appendChild(committerName);
                     }
 
+                    const commitMessageElement = document.createElement("pre");
+                    commitMessageElement.classList.add("card-text");
+
                     if (messageParts.length > 1) {
                         messageParts.forEach((part, index) => {
                             // Skip the commit message and 2 newlines.
                             if (index < 2)
                                 return;
 
-                            const commitMessageElement = document.createElement("pre");
-                            commitMessageElement.textContent = part;
-
-                            if (part.length !== 0)
-                                commitMessageElement.classList.add("card-text", "mb-0");
-
-                            commitDetailsBodyElement.appendChild(commitMessageElement);
+                            commitMessageElement.textContent += part + "\n";
                         });
+
+                        commitDetailsBodyElement.appendChild(commitMessageElement);
                     } else {
                         committerDetailsElement.classList.add("mb-0");
                     }
