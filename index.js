@@ -16,6 +16,10 @@
     const invalidSelectorCharacters = /([>+\/.])/g; // FIXME: This is definitely not a complete regex.
     const startsWithNumberRegex = /^\d/;
 
+    const hasFetch = !!window.fetch; // This is mostly for opening the page with LibWeb, as it does not currently support fetch().
+
+    let categoryCollapseElements = [];
+
     const params = new URLSearchParams(window.location.search);
     const dateParam = params.get("date");
     let date = new Date(dateParam);
@@ -113,6 +117,24 @@
             firstKey = false;
         }
 
+        if (!hasFetch) {
+            return new Promise((resolve, reject) => {
+              const xhr = new XMLHttpRequest();
+              xhr.open("GET", finalUrl);
+              xhr.setRequestHeader("Accept", "application/vnd.github.v3+json");
+              // LibWeb does not expose "onload" just yet, but does fire the load event.
+              xhr.addEventListener("load", function () {
+                  if (this.status >= 200 && this.status <= 299)
+                      resolve(JSON.parse(this.responseText))
+                  else
+                      reject();
+              });
+              // LibWeb does not expose "onerror" just yet, but does fire the error event.
+              xhr.addEventListener("error", () => reject());
+              xhr.send();
+            });
+        }
+
         return fetch(finalUrl, {
             headers: {
                 "Accept": "application/vnd.github.v3+json"
@@ -129,11 +151,19 @@
 
         while (true) {
             const response = await getPageNumber(url, parameters, pageNumber);
-            const jsonResponse = await response.json();
-            finalResponse = finalResponse.concat(jsonResponse);
 
-            if (shouldStop(jsonResponse))
-                break;
+            if (hasFetch) {
+                const jsonResponse = await response.json();
+                finalResponse = finalResponse.concat(jsonResponse);
+
+                if (shouldStop(jsonResponse))
+                    break;
+            } else {
+                finalResponse = finalResponse.concat(response);
+
+                if (shouldStop(response))
+                    break;
+            }
 
             pageNumber++;
         }
@@ -176,6 +206,8 @@
 
         changelogElement.innerHTML = "";
 
+        categoryCollapseElements = [];
+
         try {
             const shouldStop = (jsonResponse) => {
                 // If there's the exact number of commits we requested, we can't know for sure if that's all of them.
@@ -184,8 +216,8 @@
             }
 
             const commits = await paginate("https://api.github.com/repos/SerenityOS/serenity/commits", {
-                since: `2021-06-01T00:00:00Z`,
-                until: `2021-06-22T23:59:59Z`
+                since: `${getISODateString()}T00:00:00Z`,
+                until: `${getISODateString()}T23:59:59Z`
             }, shouldStop);
 
             loadingIndicator.classList.add("d-none");
@@ -246,6 +278,9 @@
                 categoryCollapseElement.classList.add("accordion-collapse", "collapse", "show");
                 categoryCollapseElement.setAttribute("aria-labelledby", accordionHeaderId);
                 categorySectionElement.appendChild(categoryCollapseElement);
+
+                const categoryCollapseBootstrapClass = new bootstrap.Collapse(categoryCollapseElement, { toggle: false });
+                categoryCollapseElements.push(categoryCollapseBootstrapClass);
 
                 const commitListElement = document.createElement("ul");
                 commitListElement.classList.add("accordion-body", "list-unstyled");
