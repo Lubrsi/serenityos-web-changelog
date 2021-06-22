@@ -102,13 +102,6 @@
         loadFailedAlert.classList.remove("d-none");
     }
 
-    function showLoadingIndicator() {
-    }
-
-    function hideLoadingIndicator() {
-        loadingIndicator.classList.add("d-none");
-    }
-
     async function getPageNumber(url, parameters, pageNumber) {
         parameters.page = pageNumber;
 
@@ -367,7 +360,7 @@
             });
         } catch (e) {
             console.error(e);
-            hideLoadingIndicator();
+            loadingIndicator.classList.add("d-none");
             fetchFailed();
         }
     }
