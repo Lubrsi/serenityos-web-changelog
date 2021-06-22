@@ -13,6 +13,7 @@
                 --color-text: #312f2f;
                 --color-background: #f6fcfc;
                 --color-background-alt: #dfecec;
+                --color-revealed-accordion: #c1d7d7;
             }
 
             @media (prefers-color-scheme: dark) {
@@ -21,12 +22,35 @@
                     --color-text: #dddddd;
                     --color-background: #191922;
                     --color-background-alt: #262635;
+                    --color-revealed-accordion: #1c1c2f;
                 }
             }
 
             body {
                 background: var(--color-background);
                 color: var(--color-text);
+            }
+
+            .accordion-item, .accordion-header, .accordion-button {
+                background: var(--color-background-alt);
+                color: var(--color-text);
+            }
+
+            .accordion-button:not(.collapsed) {
+                background: var(--color-revealed-accordion);
+                color: var(--color-text);
+            }
+
+            /*
+             * Bootstrap uses a background-image for the accordion-button icon.
+             * This background-image is visually the same as the chevron-down icon from Bootstrap Icons.
+             * background-images can't be coloured. However, since we pull in Bootstrap Icons,
+             * we can just replace the background-image with a chevron-down icon.
+             */
+            .accordion-button::after {
+                font-family: bootstrap-icons !important;
+                background-image: none !important;
+                content: "\f282";
             }
 
             .details-button {
@@ -39,11 +63,11 @@
             }
 
             ul {
-                padding-left: 1rem;
+                margin-bottom: 0;
             }
 
             .card {
-                background: var(--color-background-alt);
+                background: var(--color-revealed-accordion);
             }
 
             .accordion-button {
