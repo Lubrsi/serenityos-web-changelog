@@ -10,10 +10,11 @@
     const tomorrowButton = document.getElementById("tomorrow-button");
     const noCommitsMessage = document.getElementById("no-commits");
 
-    const numCommitsPerPage = 70; // This is just a guess based on how many commits we have a day.
+    const numCommitsPerPage = 100; // This is just a guess based on how many commits we have a day.
     const categoryRegex = /(^\S[^"]*?):/;
     const titleMessageRegex = /: (.*)/; // A regex is used instead of splitting in case the title has multiple ':'.
     const invalidSelectorCharacters = /([>+\/.])/g; // FIXME: This is definitely not a complete regex.
+    const startsWithNumberRegex = /^\d/;
 
     const params = new URLSearchParams(window.location.search);
     const dateParam = params.get("date");
@@ -190,8 +191,8 @@
             }
 
             const commits = await paginate("https://api.github.com/repos/SerenityOS/serenity/commits", {
-                since: `${getISODateString()}T00:00:00Z`,
-                until: `${getISODateString()}T23:59:59Z`
+                since: `2021-06-01T00:00:00Z`,
+                until: `2021-06-22T23:59:59Z`
             }, shouldStop);
 
             loadingIndicator.classList.add("d-none");
@@ -221,16 +222,41 @@
 
             sortedCategories.forEach((category) => {
                 const commits = categories[category];
+                let validSelectorCategory = category.replace(invalidSelectorCharacters, '');
+                if (startsWithNumberRegex.test(validSelectorCategory)) // Selectors starting with a number are invalid. Just prepend an 'i' to counteract it.
+                    validSelectorCategory = 'i' + validSelectorCategory;
+
+                const accordionCollapseId = `${validSelectorCategory}-collapse`;
+                const accordionHeaderId = `${accordionCollapseId}-heading`;
 
                 const categorySectionElement = document.createElement("section");
+                categorySectionElement.classList.add("accordion-item");
                 changelogElement.appendChild(categorySectionElement);
 
                 const categoryHeaderElement = document.createElement("h4");
-                categoryHeaderElement.textContent = category;
+                categoryHeaderElement.id = accordionHeaderId;
+                categoryHeaderElement.classList.add("accordion-header");
                 categorySectionElement.appendChild(categoryHeaderElement);
 
+                const categoryCollapseOpenButtonElement = document.createElement("button");
+                categoryCollapseOpenButtonElement.classList.add("accordion-button");
+                categoryCollapseOpenButtonElement.type = "button";
+                categoryCollapseOpenButtonElement.setAttribute("data-bs-toggle", "collapse");
+                categoryCollapseOpenButtonElement.setAttribute("data-bs-target", `#${accordionCollapseId}`);
+                categoryCollapseOpenButtonElement.setAttribute("aria-expanded", "true");
+                categoryCollapseOpenButtonElement.setAttribute("aria-controls", accordionCollapseId);
+                categoryCollapseOpenButtonElement.textContent = category;
+                categoryHeaderElement.appendChild(categoryCollapseOpenButtonElement);
+
+                const categoryCollapseElement = document.createElement("div");
+                categoryCollapseElement.id = accordionCollapseId;
+                categoryCollapseElement.classList.add("accordion-collapse", "collapse", "show");
+                categoryCollapseElement.setAttribute("aria-labelledby", accordionHeaderId);
+                categorySectionElement.appendChild(categoryCollapseElement);
+
                 const commitListElement = document.createElement("ul");
-                categorySectionElement.appendChild(commitListElement);
+                commitListElement.classList.add("accordion-body", "list-unstyled");
+                categoryCollapseElement.appendChild(commitListElement);
 
                 commits.forEach((commit, index) => {
                     const commitListEntryElement = document.createElement("li");
@@ -252,9 +278,7 @@
                     commitTitleElement.setAttribute("rel", "noopener noreferrer");
                     commitListEntryElement.appendChild(commitTitleElement);
 
-                    let detailsId = `${category}${index}`.replace(invalidSelectorCharacters, '');
-                    if (/^\d/.test(detailsId)) // Selectors starting with a number are invalid. Just prepend an 'i' to counteract it.
-                        detailsId = 'i' + detailsId;
+                    const detailsId = `${validSelectorCategory}${index}`.replace(invalidSelectorCharacters, '');
 
                     const detailsButtonElement = document.createElement("button");
                     detailsButtonElement.classList.add("btn", "btn-primary", "details-button", "ms-2");

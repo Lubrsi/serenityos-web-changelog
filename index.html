@@ -38,10 +38,6 @@
                 margin-top: 0.5rem;
             }
 
-            li {
-                list-style-type: none;
-            }
-
             ul {
                 padding-left: 1rem;
             }
@@ -50,16 +46,16 @@
                 background: var(--color-background-alt);
             }
 
+            .accordion-button {
+                font-size: 1.25rem;
+            }
+
             code {
                 display: inline-block;
                 padding: 0 2px;
                 border-radius: 4px;
                 font-size: 1rem;
                 background: var(--color-background-alt);
-            }
-
-            pre {
-                margin-bottom: 21px;
             }
         </style>
     </head>
@@ -125,7 +121,7 @@
                 No commits for this date. Try another date.
             </div>
 
-            <main id="changelog">
+            <main id="changelog" class="accordion">
             </main>
 
             <p class="text-center m-5">
