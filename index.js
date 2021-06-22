@@ -5,10 +5,13 @@
     const loadFailedAlert = document.getElementById("load-failed");
     const loadingIndicator = document.getElementById("loading-indicator");
     const changelogElement = document.getElementById("changelog");
+    const changelogBodyElement = document.getElementById("changelog-body");
     const yesterdayButton = document.getElementById("yesterday-button");
     const todayButton = document.getElementById("today-button");
     const tomorrowButton = document.getElementById("tomorrow-button");
     const noCommitsMessage = document.getElementById("no-commits");
+    const showAllButton = document.getElementById("show-all");
+    const hideAllButton = document.getElementById("hide-all");
 
     const numCommitsPerPage = 100; // This is just a guess based on how many commits we have a day.
     const categoryRegex = /(^\S[^"]*?):/;
@@ -104,6 +107,18 @@
 
         updateURLQuery();
         createChangelog();
+    };
+
+    showAllButton.onclick = () => {
+        categoryCollapseElements.forEach(element => {
+            element.show();
+        });
+    };
+
+    hideAllButton.onclick = () => {
+        categoryCollapseElements.forEach(element => {
+            element.hide();
+        });
     };
 
     function fetchFailed() {
@@ -205,7 +220,8 @@
 
         disableDateButtons();
 
-        changelogElement.innerHTML = "";
+        changelogElement.classList.add("d-none");
+        changelogBodyElement.innerHTML = "";
 
         categoryCollapseElements = [];
 
@@ -225,6 +241,7 @@
                 shouldStop
             );
 
+            changelogElement.classList.remove("d-none");
             loadingIndicator.classList.add("d-none");
             enableDateButtons();
 
@@ -263,7 +280,7 @@
 
                 const categorySectionElement = document.createElement("section");
                 categorySectionElement.classList.add("accordion-item");
-                changelogElement.appendChild(categorySectionElement);
+                changelogBodyElement.appendChild(categorySectionElement);
 
                 const categoryHeaderElement = document.createElement("h4");
                 categoryHeaderElement.id = accordionHeaderId;

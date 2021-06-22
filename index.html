@@ -121,8 +121,21 @@
                 No commits for this date. Try another date.
             </div>
 
-            <main id="changelog" class="accordion">
-            </main>
+            <div id="changelog" class="d-none">
+                <div class="d-flex gap-3 mb-3">
+                    <button class="btn btn-primary w-100" id="show-all">
+                        <i class="bi-chevron-down"></i>
+                        Show all
+                    </button>
+
+                    <button class="btn btn-primary w-100" id="hide-all">
+                        <i class="bi-chevron-up"></i>
+                        Hide all
+                    </button>
+                </div>
+
+                <main id="changelog-body" class="accordion"></main>
+            </div>
 
             <p class="text-center m-5">
                 Made by <a href="mailto:lukew@serenityos.org">Luke Wilde.</a> (<code>@Lubrsi</code> on <a href="https://discord.com/invite/29gCcKsXkF" target="_blank" rel="noopener noreferrer">Discord</a>)
