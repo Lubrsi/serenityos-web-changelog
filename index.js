@@ -2,7 +2,6 @@
 
 (() => {
     const dateElement = document.getElementById("date");
-    const loadFailedAlert = document.getElementById("load-failed");
     const loadingIndicator = document.getElementById("loading-indicator");
     const changelogElement = document.getElementById("changelog");
     const changelogBodyElement = document.getElementById("changelog-body");
@@ -12,6 +11,19 @@
     const noCommitsMessage = document.getElementById("no-commits");
     const showAllButton = document.getElementById("show-all");
     const hideAllButton = document.getElementById("hide-all");
+
+    const loadFailedAlert = document.getElementById("load-failed");
+    const loadFailedRateLimitedAlert = document.getElementById("load-failed-rate-limited");
+    const partialLoadRateLimitedAlert = document.getElementById("partial-load-rate-limited");
+    const loadFailedBadTokenAlert = document.getElementById("load-failed-bad-token");
+    const partialLoadBadTokenAlert = document.getElementById("partial-load-bad-token");
+
+    const accessTokenFormCollapse = document.getElementById("access-token-form-collapse");
+    const accessTokenForm = document.getElementById("access-token-form");
+    const accessTokenInput = document.getElementById("token-input");
+    const removeAccessTokenButton = document.getElementById("remove-access-token-button");
+    const noAccessTokenAlert = document.getElementById("no-access-token-alert");
+    const haveAccessTokenAlert = document.getElementById("have-access-token-alert");
 
     const numCommitsPerPage = 100; // This is just a guess based on how many commits we have a day.
     const categoryRegex = /(^\S[^"]*?):/;
@@ -35,6 +47,21 @@
     let dateNumber = date.getDate();
 
     updateURLQuery();
+
+    // Use an IIFE to prevent "hasAccessToken" being used below.
+    (() => {
+        const hasAccessToken = window.localStorage.getItem("access-token") !== null;
+
+        if (!hasAccessToken) {
+            noAccessTokenAlert.classList.remove("d-none");
+            haveAccessTokenAlert.classList.add("d-none");
+        } else {
+            noAccessTokenAlert.classList.add("d-none");
+            haveAccessTokenAlert.classList.remove("d-none");
+
+            accessTokenInput.value = window.localStorage.getItem("access-token");
+        }
+    })();
 
     // https://stackoverflow.com/a/16353241
     function isLeapYear(year) {
@@ -121,6 +148,28 @@
         });
     };
 
+    accessTokenForm.onsubmit = submitEvent => {
+        submitEvent.preventDefault();
+        window.localStorage.setItem("access-token", accessTokenInput.value);
+
+        const tokenFormCollapse = new bootstrap.Collapse(accessTokenFormCollapse, { toggle: false });
+        tokenFormCollapse.hide();
+
+        noAccessTokenAlert.classList.add("d-none");
+        haveAccessTokenAlert.classList.remove("d-none");
+    };
+
+    removeAccessTokenButton.onclick = () => {
+        window.localStorage.removeItem("access-token");
+        accessTokenInput.value = "";
+
+        const tokenFormCollapse = new bootstrap.Collapse(accessTokenFormCollapse, { toggle: false });
+        tokenFormCollapse.hide();
+
+        noAccessTokenAlert.classList.remove("d-none");
+        haveAccessTokenAlert.classList.add("d-none");
+    };
+
     function fetchFailed() {
         loadFailedAlert.classList.remove("d-none");
     }
@@ -153,10 +202,18 @@
             });
         }
 
+        const headers = {
+            Accept: "application/vnd.github.v3+json",
+        };
+
+        const accessToken = window.localStorage.getItem("access-token");
+
+        if (accessToken !== null) {
+            headers["Authorization"] = `token ${accessToken}`;
+        }
+
         return fetch(finalUrl, {
-            headers: {
-                Accept: "application/vnd.github.v3+json",
-            },
+            headers,
         });
     }
 
@@ -215,6 +272,10 @@
 
         noCommitsMessage.classList.add("d-none");
         loadFailedAlert.classList.add("d-none");
+        loadFailedRateLimitedAlert.classList.add("d-none");
+        partialLoadRateLimitedAlert.classList.add("d-none");
+        loadFailedBadTokenAlert.classList.add("d-none");
+        partialLoadBadTokenAlert.classList.add("d-none");
 
         loadingIndicator.classList.remove("d-none");
 
@@ -235,15 +296,49 @@
             const commits = await paginate(
                 "https://api.github.com/repos/SerenityOS/serenity/commits",
                 {
-                    since: `${getISODateString()}T00:00:00Z`,
-                    until: `${getISODateString()}T23:59:59Z`,
+                    since: `2021-06-01T00:00:00Z`,
+                    until: `2021-06-24T23:59:59Z`,
                 },
                 shouldStop
             );
 
-            changelogElement.classList.remove("d-none");
             loadingIndicator.classList.add("d-none");
             enableDateButtons();
+
+            console.log(commits.length);
+
+            // If the last commit contains "message" and "documentation_url", this means we've been rejected.
+            const lastCommit = commits[commits.length - 1];
+            if (lastCommit.message !== undefined && lastCommit.documentation_url !== undefined) {
+                // FIXME: This is a bit crude.
+                if (lastCommit.message === "Bad credentials") {
+                    // If there's only one entry, that means there are no other commits to show.
+                    // Show an error and return.
+                    if (commits.length === 1) {
+                        loadFailedBadTokenAlert.classList.remove("d-none");
+                        return;
+                    }
+
+                    // If there's more than one entry, we can show the partial list.
+                    // Show a warning and remove the last "commit", but don't return.
+                    partialLoadBadTokenAlert.classList.remove("d-none");
+                    commits.pop();
+                } else {
+                    // If there's only one entry, that means there are no other commits to show.
+                    // Show an error and return.
+                    if (commits.length === 1) {
+                        loadFailedRateLimitedAlert.classList.remove("d-none");
+                        return;
+                    }
+
+                    // If there's more than one entry, we can show the partial list.
+                    // Show a warning and remove the last "commit", but don't return.
+                    partialLoadRateLimitedAlert.classList.remove("d-none");
+                    commits.pop();
+                }
+            }
+
+            changelogElement.classList.remove("d-none");
 
             if (commits.length === 0) {
                 noCommitsMessage.classList.remove("d-none");
@@ -348,7 +443,7 @@
                     detailsButtonElement.classList.add(
                         "btn",
                         "btn-primary",
-                        "details-button",
+                        "small-button",
                         "ms-2"
                     );
                     detailsButtonElement.setAttribute("type", "button");
@@ -446,11 +541,14 @@
             console.error(e);
             loadingIndicator.classList.add("d-none");
             fetchFailed();
+            enableDateButtons();
         }
     }
 
-    const retryButton = document.getElementById("retry");
-    retryButton.onclick = createChangelog;
+    const retryButtons = document.querySelectorAll(".retry-fetch");
+    retryButtons.forEach(button => {
+        button.onclick = createChangelog;
+    });
 
     createChangelog();
 })();

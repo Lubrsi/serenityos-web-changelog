@@ -53,7 +53,7 @@
                 content: "\f282";
             }
 
-            .details-button {
+            .small-button {
                 font-size: 0.8rem;
                 padding: 0.1rem 0.2rem;
             }
@@ -96,17 +96,17 @@
 
             <div class="text-center mb-3">
                 <div class="btn-group justify-content-center" role="group">
-                    <button class="btn btn-primary" id="yesterday-button" disabled>
+                    <button class="btn btn-primary d-flex gap-1" id="yesterday-button" disabled>
                         <i class="bi-arrow-left"></i>
                         Yesterday
                     </button>
 
-                    <button class="btn btn-primary" id="today-button" disabled>
+                    <button class="btn btn-primary d-flex gap-1" id="today-button" disabled>
                         <i class="bi-circle-fill"></i>
                         Today
                     </button>
 
-                    <button class="btn btn-primary" id="tomorrow-button" disabled>
+                    <button class="btn btn-primary d-flex gap-1" id="tomorrow-button" disabled>
                         Tomorrow
                         <i class="bi-arrow-right"></i>
                     </button>
@@ -128,20 +128,95 @@
                 (<code>#serenityos</code> or <code>#development</code>)
             </p>
 
+            <p class="d-flex align-items-center gap-2 d-none" id="no-access-token-alert">
+                You have not provided a GitHub personal access token. You are limited to 60 requests (or 6,000 commits) an hour.
+                <button class="btn btn-primary small-button" type="button" data-bs-toggle="collapse" data-bs-target="#access-token-form-collapse" aria-expanded="false" aria-controls="access-token-form-collapse">
+                    Set Access Token
+                </button>
+            </p>
+
+            <p class="d-flex align-items-center gap-2 d-none" id="have-access-token-alert">
+                You have provided a GitHub personal access token. You are limited to 5,000 requests (or 500,000 commits) an hour.
+                <button class="btn btn-primary small-button" type="button" data-bs-toggle="collapse" data-bs-target="#access-token-form-collapse" aria-expanded="false" aria-controls="access-token-form-collapse">
+                    Change Access Token
+                </button>
+
+                <button class="btn btn-primary small-button" id="remove-access-token-button" type="button">
+                    Remove Access Token
+                </button>
+            </p>
+
+            <div class="collapse" id="access-token-form-collapse">
+                <form class="mb-3" id="access-token-form" autocomplete="off">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text" id="token-group-label">Access Token</span>
+                        <input type="text" class="form-control" id="token-input" placeholder="Enter your personal access token here" aria-label="Token" aria-describedby="token-group-label" required pattern="ghp_[A-Za-z0-9]{36}">
+                        <button class="btn btn-success" type="submit">Set Access Token</button>
+                    </div>
+
+                    <div class="form-text">
+                        Follow the instructions
+                        <a href="https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token" target="_blank" rel="noopener noreferrer">
+                            here
+                        </a>
+                        to generate a personal access token.
+                        <strong>Do not provide any permissions on this token.</strong>
+                        It is purely used to increase the rate limit.
+                    </div>
+
+                    <div class="form-text">
+                        Once set, it will be stored in local storage. You will be given the option to remove it.
+                    </div>
+                </form>
+            </div>
+
             <div class="d-flex align-items-center" id="loading-indicator">
                 <div class="spinner-border" role="status"></div>
                 <span class="ms-3">Loading...</span>
             </div>
 
-            <div class="alert alert-danger d-flex align-items-center justify-content-center d-none" id="load-failed">
-                Failed to fetch commits.
-                <button class="btn btn-primary ms-3" id="retry">
+            <div class="alert alert-danger d-flex align-items-center justify-content-center d-none" role="alert" id="load-failed">
+                Failed to retrieve commits.
+                <button class="btn btn-primary ms-3 retry-fetch d-flex gap-1">
                     <i class="bi-arrow-repeat"></i>
                     Retry
                 </button>
             </div>
 
-            <div class="alert alert-primary text-center d-none" id="no-commits">
+            <div class="alert alert-danger d-flex align-items-center justify-content-center d-none" role="alert" id="load-failed-rate-limited">
+                Unable to show any commits due to rate limiting. Please try again later.
+                <button class="btn btn-primary ms-3 retry-fetch d-flex gap-1">
+                    <i class="bi-arrow-repeat"></i>
+                    Retry
+                </button>
+            </div>
+
+            <div class="alert alert-warning d-flex align-items-center justify-content-center d-none" role="alert" id="partial-load-rate-limited">
+                This is a partial changelog, as rate limiting was enforced while retrieving the commits.
+                <button class="btn btn-primary ms-3 retry-fetch d-flex gap-1">
+                    <i class="bi-arrow-repeat"></i>
+                    Retry
+                </button>
+            </div>
+
+            <div class="alert alert-danger d-flex align-items-center justify-content-center d-none" role="alert" id="load-failed-bad-token">
+                The provided personal access token is invalid. Please change/remove it, then press Retry.
+                <button class="btn btn-primary ms-3 retry-fetch d-flex gap-1">
+                    <i class="bi-arrow-repeat"></i>
+                    Retry
+                </button>
+            </div>
+
+            <div class="alert alert-warning d-flex align-items-center justify-content-center d-none" role="alert" id="partial-load-bad-token">
+                This is a partial changelog, as an invalid personal access token was provided after retrieving some commits.
+                Please change/remove the access token, then press Retry.
+                <button class="btn btn-primary ms-3 retry-fetch d-flex gap-1">
+                    <i class="bi-arrow-repeat"></i>
+                    Retry
+                </button>
+            </div>
+
+            <div class="alert alert-primary text-center d-none" role="alert" id="no-commits">
                 No commits for this date. Try another date.
             </div>
 
