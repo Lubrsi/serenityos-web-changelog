@@ -361,11 +361,11 @@
 
                     const commitDetailsElement = document.createElement("div");
                     commitDetailsElement.id = detailsId;
-                    commitDetailsElement.classList.add("collapse", "mt-2");
+                    commitDetailsElement.classList.add("collapse");
                     commitListElement.appendChild(commitDetailsElement);
 
                     const commitDetailsBodyElement = document.createElement("div");
-                    commitDetailsBodyElement.classList.add("card", "card-body");
+                    commitDetailsBodyElement.classList.add("card", "card-body", "mt-2");
                     commitDetailsElement.appendChild(commitDetailsBodyElement);
 
                     const committerDetailsElement = document.createElement("h5");
