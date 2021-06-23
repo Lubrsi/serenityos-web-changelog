@@ -296,8 +296,8 @@
             const commits = await paginate(
                 "https://api.github.com/repos/SerenityOS/serenity/commits",
                 {
-                    since: `2021-06-01T00:00:00Z`,
-                    until: `2021-06-24T23:59:59Z`,
+                    since: `${getISODateString()}T00:00:00Z`,
+                    until: `${getISODateString()}T23:59:59Z`,
                 },
                 shouldStop
             );
