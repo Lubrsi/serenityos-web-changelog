@@ -305,7 +305,10 @@
             loadingIndicator.classList.add("d-none");
             enableDateButtons();
 
-            console.log(commits.length);
+            if (commits.length === 0) {
+                noCommitsMessage.classList.remove("d-none");
+                return;
+            }
 
             // If the last commit contains "message" and "documentation_url", this means we've been rejected.
             const lastCommit = commits[commits.length - 1];
@@ -339,11 +342,6 @@
             }
 
             changelogElement.classList.remove("d-none");
-
-            if (commits.length === 0) {
-                noCommitsMessage.classList.remove("d-none");
-                return;
-            }
 
             const categories = [];
 
