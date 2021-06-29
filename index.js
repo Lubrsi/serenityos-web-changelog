@@ -558,6 +558,11 @@
                 commitListElement.classList.add("accordion-body", "list-unstyled");
                 categoryCollapseElement.appendChild(commitListElement);
 
+                const commitCountElement = document.createElement("h6");
+                const sectionPlural = commits.length > 1 ? "s" : "";
+                commitCountElement.textContent = `${commits.length} commit${sectionPlural}`;
+                commitListElement.appendChild(commitCountElement);
+
                 commits.forEach((commit, index) => {
                     const commitListEntryElement = document.createElement("li");
                     commitListEntryElement.classList.add("d-flex", "align-items-center");
