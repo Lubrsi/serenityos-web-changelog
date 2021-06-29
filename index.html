@@ -24,6 +24,16 @@
                     --color-background-alt: #262635;
                     --color-revealed-accordion: #1c1c2f;
                 }
+
+                #token-group-label, #token-input {
+                    color: var(--color-text);
+                    background-color: var(--color-background-alt);
+                    border-color: var(--color-background-alt);
+                }
+
+                #token-input::placeholder {
+                    color: #aaa;
+                }
             }
 
             body {
@@ -80,6 +90,10 @@
                 border-radius: 4px;
                 font-size: 1rem;
                 background: var(--color-background-alt);
+            }
+
+            .form-text {
+                color: var(--color-text);
             }
         </style>
     </head>
