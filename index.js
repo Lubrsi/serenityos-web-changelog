@@ -11,6 +11,7 @@
     const noCommitsMessage = document.getElementById("no-commits");
     const showAllButton = document.getElementById("show-all");
     const hideAllButton = document.getElementById("hide-all");
+    const commitCountElement = document.getElementById("commit-count");
 
     const loadFailedAlert = document.getElementById("load-failed");
     const loadFailedRateLimitedAlert = document.getElementById("load-failed-rate-limited");
@@ -484,6 +485,9 @@
             }
 
             changelogElement.classList.remove("d-none");
+
+            const plural = commits.length > 1 ? "s" : "";
+            commitCountElement.textContent = `${commits.length} commit${plural}`;
 
             const categories = [];
 
