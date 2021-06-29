@@ -25,10 +25,17 @@
     const noAccessTokenAlert = document.getElementById("no-access-token-alert");
     const haveAccessTokenAlert = document.getElementById("have-access-token-alert");
 
+    const monthlyToggleCheckbox = document.getElementById("monthly-toggle");
+    const lastMonthButton = document.getElementById("last-month-button");
+    const thisMonthButton = document.getElementById("this-month-button");
+    const nextMonthButton = document.getElementById("next-month-button");
+    const dailyButtons = document.getElementById("daily-buttons");
+    const monthlyButtons = document.getElementById("monthly-buttons");
+
     const numCommitsPerPage = 100; // This is just a guess based on how many commits we have a day.
     const categoryRegex = /(^\S[^"]*?):/;
     const titleMessageRegex = /: (.*)/; // A regex is used instead of splitting in case the title has multiple ':'.
-    const invalidSelectorCharacters = /([>+\/.])/g; // FIXME: This is definitely not a complete regex.
+    const invalidSelectorCharacters = /([>+\/.*])/g; // FIXME: This is definitely not a complete regex.
     const startsWithNumberRegex = /^\d/;
 
     const hasFetch = !!window.fetch; // This is mostly for opening the page with LibWeb, as it does not currently support fetch().
@@ -36,11 +43,54 @@
     let categoryCollapseElements = [];
 
     const params = new URLSearchParams(window.location.search);
-    const dateParam = params.get("date");
-    let date = new Date(dateParam);
-    if (dateParam === null || isNaN(date)) {
-        date = new Date();
+
+    const isMonthlyParam = params.get("monthly");
+    let monthly = isMonthlyParam === "true";
+
+    let date;
+
+    if (!monthly) {
+        const dateParam = params.get("date");
+        date = new Date(dateParam);
+
+        if (dateParam === null) {
+            date = new Date();
+        }
     }
+
+    if (isNaN(date)) {
+        date = new Date();
+
+        if (monthly) {
+            const yearParam = params.get("year");
+            const monthParam = params.get("month");
+
+            if (yearParam !== null && monthParam !== null) {
+                const yearNum = parseInt(yearParam, 10);
+                const monthNum = parseInt(monthParam, 10);
+
+                if (!isNaN(yearNum) && !isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) {
+                    date.setFullYear(yearNum, monthNum - 1);
+                }
+            }
+        }
+    }
+
+    if (monthly) {
+        monthlyToggleCheckbox.checked = true;
+    }
+
+    function showAppropriateDateButtons() {
+        if (monthly) {
+            dailyButtons.classList.add("d-none");
+            monthlyButtons.classList.remove("d-none");
+        } else {
+            dailyButtons.classList.remove("d-none");
+            monthlyButtons.classList.add("d-none");
+        }
+    }
+
+    showAppropriateDateButtons();
 
     let year = date.getFullYear();
     let monthNumber = date.getMonth() + 1; // This is 0-based.
@@ -48,8 +98,8 @@
 
     updateURLQuery();
 
-    // Use an IIFE to prevent "hasAccessToken" being used below.
-    (() => {
+    // Use a scope to prevent "hasAccessToken" being used below.
+    {
         const hasAccessToken = window.localStorage.getItem("access-token") !== null;
 
         if (!hasAccessToken) {
@@ -61,7 +111,7 @@
 
             accessTokenInput.value = window.localStorage.getItem("access-token");
         }
-    })();
+    }
 
     // https://stackoverflow.com/a/16353241
     function isLeapYear(year) {
@@ -86,6 +136,18 @@
         }
     }
 
+    function setDateToToday() {
+        // May have potentially gone past midnight.
+        const today = new Date();
+
+        year = today.getFullYear();
+        monthNumber = today.getMonth() + 1; // This is 0-based.
+        dateNumber = today.getDate();
+
+        updateURLQuery();
+        createChangelog();
+    }
+
     yesterdayButton.onclick = () => {
         dateNumber--;
 
@@ -107,17 +169,7 @@
         createChangelog();
     };
 
-    todayButton.onclick = () => {
-        // May have potentially gone past midnight.
-        const today = new Date();
-
-        year = today.getFullYear();
-        monthNumber = today.getMonth() + 1; // This is 0-based.
-        dateNumber = today.getDate();
-
-        updateURLQuery();
-        createChangelog();
-    };
+    todayButton.onclick = setDateToToday;
 
     tomorrowButton.onclick = () => {
         dateNumber++;
@@ -132,6 +184,40 @@
             year++;
         }
 
+        updateURLQuery();
+        createChangelog();
+    };
+
+    lastMonthButton.onclick = () => {
+        monthNumber--;
+
+        if (monthNumber <= 0) {
+            monthNumber = 12;
+            year--;
+        }
+
+        updateURLQuery();
+        createChangelog();
+    };
+
+    thisMonthButton.onclick = setDateToToday;
+
+    nextMonthButton.onclick = () => {
+        monthNumber++;
+
+        if (monthNumber > 12) {
+            monthNumber = 1;
+            year++;
+        }
+
+        updateURLQuery();
+        createChangelog();
+    };
+
+    monthlyToggleCheckbox.onchange = () => {
+        monthly = monthlyToggleCheckbox.checked;
+
+        showAppropriateDateButtons();
         updateURLQuery();
         createChangelog();
     };
@@ -152,7 +238,9 @@
         submitEvent.preventDefault();
         window.localStorage.setItem("access-token", accessTokenInput.value);
 
-        const tokenFormCollapse = new bootstrap.Collapse(accessTokenFormCollapse, { toggle: false });
+        const tokenFormCollapse = new bootstrap.Collapse(accessTokenFormCollapse, {
+            toggle: false,
+        });
         tokenFormCollapse.hide();
 
         noAccessTokenAlert.classList.add("d-none");
@@ -163,7 +251,9 @@
         window.localStorage.removeItem("access-token");
         accessTokenInput.value = "";
 
-        const tokenFormCollapse = new bootstrap.Collapse(accessTokenFormCollapse, { toggle: false });
+        const tokenFormCollapse = new bootstrap.Collapse(accessTokenFormCollapse, {
+            toggle: false,
+        });
         tokenFormCollapse.hide();
 
         noAccessTokenAlert.classList.remove("d-none");
@@ -248,12 +338,20 @@
         yesterdayButton.removeAttribute("disabled");
         todayButton.removeAttribute("disabled");
         tomorrowButton.removeAttribute("disabled");
+        monthlyToggleCheckbox.removeAttribute("disabled");
+        lastMonthButton.removeAttribute("disabled");
+        thisMonthButton.removeAttribute("disabled");
+        nextMonthButton.removeAttribute("disabled");
     }
 
     function disableDateButtons() {
         yesterdayButton.setAttribute("disabled", "");
         todayButton.setAttribute("disabled", "");
         tomorrowButton.setAttribute("disabled", "");
+        monthlyToggleCheckbox.setAttribute("disabled", "");
+        lastMonthButton.setAttribute("disabled", "");
+        thisMonthButton.setAttribute("disabled", "");
+        nextMonthButton.setAttribute("disabled", "");
     }
 
     function getISODateString() {
@@ -263,12 +361,44 @@
     }
 
     function updateURLQuery() {
-        window.history.replaceState(null, null, `?date=${getISODateString()}`);
+        if (!monthly) {
+            window.history.replaceState(
+                null,
+                null,
+                `?date=${getISODateString()}&monthly=${monthly}`
+            );
+        } else {
+            window.history.replaceState(
+                null,
+                null,
+                `?month=${monthNumber}&year=${year}&monthly=${monthly}`
+            );
+        }
     }
 
     async function createChangelog() {
         const currentDate = new Date(year, monthNumber - 1, dateNumber);
-        dateElement.textContent = `For ${currentDate.toDateString()}`;
+
+        if (!monthly) {
+            dateElement.textContent = `For ${currentDate.toDateString()}`;
+        } else {
+            const monthNames = [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
+            ];
+            const monthName = monthNames[monthNumber - 1];
+            dateElement.textContent = `For ${monthName} ${year}`;
+        }
 
         noCommitsMessage.classList.add("d-none");
         loadFailedAlert.classList.add("d-none");
@@ -293,12 +423,24 @@
                 return jsonResponse.length !== numCommitsPerPage;
             };
 
+            const parameters = {};
+
+            if (!monthly) {
+                parameters["since"] = `${getISODateString()}T00:00:00Z`;
+                parameters["until"] = `${getISODateString()}T23:59:59Z`;
+            } else {
+                const lastDay = getLastDayOfMonth(year, monthNumber);
+
+                const month = monthNumber.toString().padStart(2, "0");
+                const date = lastDay.toString().padStart(2, "0");
+
+                parameters["since"] = `${year}-${month}-01T00:00:00Z`;
+                parameters["until"] = `${year}-${month}-${date}T23:59:59Z`;
+            }
+
             const commits = await paginate(
                 "https://api.github.com/repos/SerenityOS/serenity/commits",
-                {
-                    since: `${getISODateString()}T00:00:00Z`,
-                    until: `${getISODateString()}T23:59:59Z`,
-                },
+                parameters,
                 shouldStop
             );
 
