@@ -307,7 +307,7 @@
         };
 
         if (currentAccessToken !== null) {
-            headers["Authorization"] = `token ${accessToken}`;
+            headers["Authorization"] = `token ${currentAccessToken}`;
         }
 
         return fetch(finalUrl, {
