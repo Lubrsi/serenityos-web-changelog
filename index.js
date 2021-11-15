@@ -40,6 +40,9 @@
     const startsWithNumberRegex = /^\d/;
 
     const hasFetch = !!window.fetch; // This is mostly for opening the page with LibWeb, as it does not currently support fetch().
+    const hasLocalStorage = !!window.localStorage; // This is mostly for opening the page with LibWeb, as it does not currently support localStorage.
+
+    let currentAccessToken = null;
 
     let categoryCollapseElements = [];
 
@@ -99,8 +102,7 @@
 
     updateURLQuery();
 
-    // Use a scope to prevent "hasAccessToken" being used below.
-    {
+    if (hasLocalStorage) {
         const hasAccessToken = window.localStorage.getItem("access-token") !== null;
 
         if (!hasAccessToken) {
@@ -110,7 +112,10 @@
             noAccessTokenAlert.classList.add("d-none");
             haveAccessTokenAlert.classList.remove("d-none");
 
-            accessTokenInput.value = window.localStorage.getItem("access-token");
+            const accessToken = window.localStorage.getItem("access-token");
+
+            accessTokenInput.value = accessToken;
+            currentAccessToken = accessToken;
         }
     }
 
@@ -237,7 +242,9 @@
 
     accessTokenForm.onsubmit = submitEvent => {
         submitEvent.preventDefault();
-        window.localStorage.setItem("access-token", accessTokenInput.value);
+        if (hasLocalStorage) window.localStorage.setItem("access-token", accessTokenInput.value);
+
+        currentAccessToken = accessTokenForm.value;
 
         const tokenFormCollapse = new bootstrap.Collapse(accessTokenFormCollapse, {
             toggle: false,
@@ -249,8 +256,10 @@
     };
 
     removeAccessTokenButton.onclick = () => {
-        window.localStorage.removeItem("access-token");
+        if (hasLocalStorage) window.localStorage.removeItem("access-token");
+
         accessTokenInput.value = "";
+        currentAccessToken = null;
 
         const tokenFormCollapse = new bootstrap.Collapse(accessTokenFormCollapse, {
             toggle: false,
@@ -297,9 +306,7 @@
             Accept: "application/vnd.github.v3+json",
         };
 
-        const accessToken = window.localStorage.getItem("access-token");
-
-        if (accessToken !== null) {
+        if (currentAccessToken !== null) {
             headers["Authorization"] = `token ${accessToken}`;
         }
 
