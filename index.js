@@ -499,14 +499,14 @@
             const categories = [];
 
             commits.forEach(commit => {
-                const categoryResult = categoryRegex.exec(commit.commit.message);
-                const category = categoryResult ? categoryResult[1] : "Uncategorized";
+                const commitCategories = categorizeCommitMessage(commit.commit.message);
 
-                const hasCategory = categories[category] !== undefined;
+                commitCategories.forEach(category => {
+                    const hasCategory = categories[category] !== undefined;
+                    if (!hasCategory) categories[category] = [];
 
-                if (!hasCategory) categories[category] = [];
-
-                categories[category].push(commit);
+                    categories[category].push(commit);
+                });
             });
 
             // For the sort: https://stackoverflow.com/a/45544166
@@ -699,6 +699,21 @@
             fetchFailed();
             enableDateButtons();
         }
+    }
+
+    function categorizeCommitMessage(message) {
+        const categoryResult = categoryRegex.exec(message);
+        if (!categoryResult)
+            return ["Uncategorized"];
+
+        const categoryString = categoryResult[1];
+        let categories = [];
+        if (categoryString.indexOf("+") >= 0)
+            categories.push(...categoryString.split("+"));
+        else
+            categories.push(categoryString);
+
+        return categories;
     }
 
     const retryButtons = document.querySelectorAll(".retry-fetch");
