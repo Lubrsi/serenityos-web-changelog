@@ -496,202 +496,194 @@
             const plural = commits.length > 1 ? "s" : "";
             commitCountElement.textContent = `${commits.length} commit${plural}`;
 
-            const categories = [];
+            const rootCategory = new Category(null, "Root");
 
             commits.forEach(commit => {
                 const commitCategories = categorizeCommitMessage(commit.commit.message);
-
-                commitCategories.forEach(category => {
-                    const hasCategory = categories[category] !== undefined;
-                    if (!hasCategory) categories[category] = [];
-
-                    categories[category].push(commit);
-                });
+                rootCategory.insertInto(commit, commitCategories);
             });
 
-            // For the sort: https://stackoverflow.com/a/45544166
-            const sortedCategories = Object.keys(categories).sort((left, right) =>
-                left.localeCompare(right)
-            );
-
-            sortedCategories.forEach(category => {
-                const commits = categories[category];
-                let validSelectorCategory = category.replace(invalidSelectorCharacters, "");
-                if (startsWithNumberRegex.test(validSelectorCategory))
-                    // Selectors starting with a number are invalid. Just prepend an 'i' to counteract it.
-                    validSelectorCategory = "i" + validSelectorCategory;
+            rootCategory.forEachSorted((commit, index, category) => {
+                const validSelectorCategory = category.validSelector;
 
                 const accordionCollapseId = `${validSelectorCategory}-collapse`;
                 const accordionHeaderId = `${accordionCollapseId}-heading`;
+                const categoryId = `${validSelectorCategory}-category`;
+                const parentElement =
+                    category.isRoot || category.superCategory.isRoot
+                        ? changelogBodyElement
+                        : document.querySelector(
+                              `#${category.superCategory.validSelector}-collapse > ul`
+                          );
 
-                const categorySectionElement = document.createElement("section");
-                categorySectionElement.classList.add("accordion-item");
-                changelogBodyElement.appendChild(categorySectionElement);
+                const createAndAppendSection = () => {
+                    const categorySectionElement = document.createElement("section");
+                    categorySectionElement.id = categoryId;
+                    categorySectionElement.classList.add("accordion-item");
+                    parentElement.classList.add("accordion");
+                    parentElement.appendChild(categorySectionElement);
 
-                const categoryHeaderElement = document.createElement("h4");
-                categoryHeaderElement.id = accordionHeaderId;
-                categoryHeaderElement.classList.add("accordion-header");
-                categorySectionElement.appendChild(categoryHeaderElement);
+                    const categoryHeaderElement = document.createElement("h4");
+                    categoryHeaderElement.id = accordionHeaderId;
+                    categoryHeaderElement.classList.add("accordion-header");
+                    categorySectionElement.appendChild(categoryHeaderElement);
 
-                const categoryCollapseOpenButtonElement = document.createElement("button");
-                categoryCollapseOpenButtonElement.classList.add("accordion-button");
-                categoryCollapseOpenButtonElement.type = "button";
-                categoryCollapseOpenButtonElement.setAttribute("data-bs-toggle", "collapse");
-                categoryCollapseOpenButtonElement.setAttribute(
-                    "data-bs-target",
-                    `#${accordionCollapseId}`
-                );
-                categoryCollapseOpenButtonElement.setAttribute("aria-expanded", "true");
-                categoryCollapseOpenButtonElement.setAttribute(
-                    "aria-controls",
-                    accordionCollapseId
-                );
-                categoryCollapseOpenButtonElement.textContent = category;
-                categoryHeaderElement.appendChild(categoryCollapseOpenButtonElement);
-
-                const categoryCollapseElement = document.createElement("div");
-                categoryCollapseElement.id = accordionCollapseId;
-                categoryCollapseElement.classList.add("accordion-collapse", "collapse", "show");
-                categoryCollapseElement.setAttribute("aria-labelledby", accordionHeaderId);
-                categorySectionElement.appendChild(categoryCollapseElement);
-
-                const categoryCollapseBootstrapClass = new bootstrap.Collapse(
-                    categoryCollapseElement,
-                    { toggle: false }
-                );
-                categoryCollapseElements.push(categoryCollapseBootstrapClass);
-
-                const commitListElement = document.createElement("ul");
-                commitListElement.classList.add("accordion-body", "list-unstyled");
-                categoryCollapseElement.appendChild(commitListElement);
-
-                const commitCountElement = document.createElement("h6");
-                const sectionPlural = commits.length > 1 ? "s" : "";
-                commitCountElement.textContent = `${commits.length} commit${sectionPlural}`;
-                commitListElement.appendChild(commitCountElement);
-
-                commits.forEach((commit, index) => {
-                    const commitListEntryElement = document.createElement("li");
-                    commitListEntryElement.classList.add("d-flex", "align-items-center");
-                    commitListElement.appendChild(commitListEntryElement);
-
-                    const commitTitleElement = document.createElement("a");
-                    const messageParts = commit.commit.message.split("\n");
-
-                    if (category !== "Uncategorized") {
-                        const titleMessage = titleMessageRegex.exec(messageParts[0])[1];
-                        commitTitleElement.textContent = titleMessage;
-                    } else {
-                        commitTitleElement.textContent = messageParts[0];
-                    }
-
-                    commitTitleElement.href = commit.html_url;
-                    commitTitleElement.target = "_blank";
-                    commitTitleElement.setAttribute("rel", "noopener noreferrer");
-                    commitListEntryElement.appendChild(commitTitleElement);
-
-                    const detailsId = `${validSelectorCategory}${index}`.replace(
-                        invalidSelectorCharacters,
-                        ""
+                    const categoryCollapseOpenButtonElement = document.createElement("button");
+                    categoryCollapseOpenButtonElement.classList.add("accordion-button");
+                    categoryCollapseOpenButtonElement.type = "button";
+                    categoryCollapseOpenButtonElement.setAttribute("data-bs-toggle", "collapse");
+                    categoryCollapseOpenButtonElement.setAttribute(
+                        "data-bs-target",
+                        `#${accordionCollapseId}`
                     );
-
-                    const detailsButtonElement = document.createElement("button");
-                    detailsButtonElement.classList.add(
-                        "btn",
-                        "btn-primary",
-                        "small-button",
-                        "ms-2"
+                    categoryCollapseOpenButtonElement.setAttribute("aria-expanded", "true");
+                    categoryCollapseOpenButtonElement.setAttribute(
+                        "aria-controls",
+                        accordionCollapseId
                     );
-                    detailsButtonElement.setAttribute("type", "button");
-                    detailsButtonElement.setAttribute("data-bs-toggle", "collapse");
-                    detailsButtonElement.setAttribute("data-bs-target", `#${detailsId}`);
-                    detailsButtonElement.setAttribute("aria-expanded", "false");
-                    detailsButtonElement.setAttribute("aria-controls", detailsId);
-                    detailsButtonElement.textContent = "Details";
-                    commitListEntryElement.appendChild(detailsButtonElement);
+                    categoryCollapseOpenButtonElement.textContent = category.name;
+                    categoryHeaderElement.appendChild(categoryCollapseOpenButtonElement);
 
-                    const commitDetailsElement = document.createElement("div");
-                    commitDetailsElement.id = detailsId;
-                    commitDetailsElement.classList.add("collapse");
-                    commitListElement.appendChild(commitDetailsElement);
+                    const categoryCollapseElement = document.createElement("div");
+                    categoryCollapseElement.id = accordionCollapseId;
+                    categoryCollapseElement.classList.add("accordion-collapse", "collapse", "show");
+                    categoryCollapseElement.setAttribute("aria-labelledby", accordionHeaderId);
+                    categorySectionElement.appendChild(categoryCollapseElement);
 
-                    const commitDetailsBodyElement = document.createElement("div");
-                    commitDetailsBodyElement.classList.add("card", "card-body", "mt-2");
-                    commitDetailsElement.appendChild(commitDetailsBodyElement);
-
-                    const committerDetailsElement = document.createElement("h5");
-                    committerDetailsElement.classList.add(
-                        "card-title",
-                        "d-flex",
-                        "align-items-center"
+                    const categoryCollapseBootstrapClass = new bootstrap.Collapse(
+                        categoryCollapseElement,
+                        { toggle: false }
                     );
-                    commitDetailsBodyElement.appendChild(committerDetailsElement);
+                    categoryCollapseElements.push(categoryCollapseBootstrapClass);
 
-                    let authorName;
+                    const commitListElement = document.createElement("ul");
+                    commitListElement.classList.add("accordion-body", "list-unstyled");
+                    categoryCollapseElement.appendChild(commitListElement);
 
-                    if (commit.author !== null) {
-                        if (commit.author.login !== commit.committer.login) {
-                            const authorImage = document.createElement("img");
-                            authorImage.classList.add("lazyload", "img-fluid", "rounded");
-                            authorImage.width = 20;
-                            authorImage.height = 20;
-                            // Use the small, 20x20 version as we limit the image size to 20x20.
-                            authorImage.setAttribute(
-                                "data-src",
-                                commit.author.avatar_url + "&s=20"
-                            );
-                            committerDetailsElement.appendChild(authorImage);
+                    const commitCountElement = document.createElement("h6");
+                    const sectionPlural = category.commitCount != 1 ? "s" : "";
+                    commitCountElement.textContent = `${category.commitCount} commit${sectionPlural}`;
+                    commitListElement.appendChild(commitCountElement);
 
-                            authorName = document.createElement("span");
-                            authorName.classList.add("ms-2", "me-2");
-                            authorName.textContent = `${commit.author.login} authored`;
-                        }
-                    } else {
-                        authorName = document.createElement("span");
-                        authorName.classList.add("me-2");
-                        authorName.textContent = `${commit.commit.author.name} authored`;
-                    }
+                    return categorySectionElement;
+                };
 
-                    if (authorName) committerDetailsElement.appendChild(authorName);
+                const matchingSections = document.querySelectorAll(`section#${categoryId}`);
+                const categorySectionElement =
+                    matchingSections.length > 0
+                        ? matchingSections[0]
+                        : createAndAppendSection(changelogBodyElement);
 
-                    // This occurs if the commit is signed.
-                    if (commit.commit.committer.name !== "GitHub") {
-                        if (!commit.author || commit.author.login !== commit.committer.login)
-                            authorName.textContent += " and";
+                // This is a fake commit so that all category accordions are properly created.
+                if (index === -1) return;
 
-                        const committerImage = document.createElement("img");
-                        committerImage.classList.add("lazyload", "img-fluid", "rounded");
+                const commitListElement = categorySectionElement.querySelector("ul.list-unstyled");
+
+                const commitListEntryElement = document.createElement("li");
+                commitListEntryElement.classList.add("d-flex", "align-items-center");
+                commitListElement.appendChild(commitListEntryElement);
+
+                const commitTitleElement = document.createElement("a");
+                const messageParts = commit.commit.message.split("\n");
+
+                if (category !== "Uncategorized") {
+                    const titleMessage = titleMessageRegex.exec(messageParts[0])[1];
+                    commitTitleElement.textContent = titleMessage;
+                } else {
+                    commitTitleElement.textContent = messageParts[0];
+                }
+
+                commitTitleElement.href = commit.html_url;
+                commitTitleElement.target = "_blank";
+                commitTitleElement.setAttribute("rel", "noopener noreferrer");
+                commitListEntryElement.appendChild(commitTitleElement);
+
+                const detailsId = `${validSelectorCategory}${index}`.replace(
+                    invalidSelectorCharacters,
+                    ""
+                );
+
+                const detailsButtonElement = document.createElement("button");
+                detailsButtonElement.classList.add("btn", "btn-primary", "small-button", "ms-2");
+                detailsButtonElement.setAttribute("type", "button");
+                detailsButtonElement.setAttribute("data-bs-toggle", "collapse");
+                detailsButtonElement.setAttribute("data-bs-target", `#${detailsId}`);
+                detailsButtonElement.setAttribute("aria-expanded", "false");
+                detailsButtonElement.setAttribute("aria-controls", detailsId);
+                detailsButtonElement.textContent = "Details";
+                commitListEntryElement.appendChild(detailsButtonElement);
+
+                const commitDetailsElement = document.createElement("div");
+                commitDetailsElement.id = detailsId;
+                commitDetailsElement.classList.add("collapse");
+                commitListElement.appendChild(commitDetailsElement);
+
+                const commitDetailsBodyElement = document.createElement("div");
+                commitDetailsBodyElement.classList.add("card", "card-body", "mt-2");
+                commitDetailsElement.appendChild(commitDetailsBodyElement);
+
+                const committerDetailsElement = document.createElement("h5");
+                committerDetailsElement.classList.add("card-title", "d-flex", "align-items-center");
+                commitDetailsBodyElement.appendChild(committerDetailsElement);
+
+                let authorName;
+
+                if (commit.author !== null) {
+                    if (commit.author.login !== commit.committer.login) {
+                        const authorImage = document.createElement("img");
+                        authorImage.classList.add("lazyload", "img-fluid", "rounded");
+                        authorImage.width = 20;
+                        authorImage.height = 20;
                         // Use the small, 20x20 version as we limit the image size to 20x20.
-                        committerImage.setAttribute(
-                            "data-src",
-                            commit.committer.avatar_url + "&s=20"
-                        );
-                        committerImage.width = 20;
-                        committerImage.height = 20;
-                        committerDetailsElement.appendChild(committerImage);
+                        authorImage.setAttribute("data-src", commit.author.avatar_url + "&s=20");
+                        committerDetailsElement.appendChild(authorImage);
 
-                        const committerName = document.createElement("span");
-                        committerName.classList.add("ms-2");
-                        committerName.textContent = `${commit.committer.login} committed`;
-                        committerDetailsElement.appendChild(committerName);
+                        authorName = document.createElement("span");
+                        authorName.classList.add("ms-2", "me-2");
+                        authorName.textContent = `${commit.author.login} authored`;
                     }
+                } else {
+                    authorName = document.createElement("span");
+                    authorName.classList.add("me-2");
+                    authorName.textContent = `${commit.commit.author.name} authored`;
+                }
 
-                    const commitMessageElement = document.createElement("pre");
-                    commitMessageElement.classList.add("card-text");
+                if (authorName) committerDetailsElement.appendChild(authorName);
 
-                    if (messageParts.length > 1) {
-                        messageParts.forEach((part, index) => {
-                            // Skip the commit message and 2 newlines.
-                            if (index < 2) return;
+                // This occurs if the commit is signed.
+                if (commit.commit.committer.name !== "GitHub") {
+                    if (!commit.author || commit.author.login !== commit.committer.login)
+                        authorName.textContent += " and";
 
-                            commitMessageElement.textContent += part + "\n";
-                        });
+                    const committerImage = document.createElement("img");
+                    committerImage.classList.add("lazyload", "img-fluid", "rounded");
+                    // Use the small, 20x20 version as we limit the image size to 20x20.
+                    committerImage.setAttribute("data-src", commit.committer.avatar_url + "&s=20");
+                    committerImage.width = 20;
+                    committerImage.height = 20;
+                    committerDetailsElement.appendChild(committerImage);
 
-                        commitDetailsBodyElement.appendChild(commitMessageElement);
-                    } else {
-                        committerDetailsElement.classList.add("mb-0");
-                    }
-                });
+                    const committerName = document.createElement("span");
+                    committerName.classList.add("ms-2");
+                    committerName.textContent = `${commit.committer.login} committed`;
+                    committerDetailsElement.appendChild(committerName);
+                }
+
+                const commitMessageElement = document.createElement("pre");
+                commitMessageElement.classList.add("card-text");
+
+                if (messageParts.length > 1) {
+                    messageParts.forEach((part, index) => {
+                        // Skip the commit message and 2 newlines.
+                        if (index < 2) return;
+
+                        commitMessageElement.textContent += part + "\n";
+                    });
+
+                    commitDetailsBodyElement.appendChild(commitMessageElement);
+                } else {
+                    committerDetailsElement.classList.add("mb-0");
+                }
             });
         } catch (e) {
             console.error(e);
@@ -702,18 +694,94 @@
     }
 
     function categorizeCommitMessage(message) {
+        message = message.trim();
         const categoryResult = categoryRegex.exec(message);
-        if (!categoryResult)
-            return ["Uncategorized"];
+        if (!categoryResult) return ["Uncategorized"];
 
         const categoryString = categoryResult[1];
         let categories = [];
         if (categoryString.indexOf("+") >= 0)
-            categories.push(...categoryString.split("+"));
-        else
-            categories.push(categoryString);
+            categories.push(...categoryString.split("+").map(c => c.trim()));
+        else categories.push(categoryString.trim());
 
         return categories;
+    }
+
+    class Category {
+        #commits = [];
+        #subCategories = new Map();
+
+        constructor(superCategory, name) {
+            this.superCategory = superCategory;
+            this.name = name;
+        }
+
+        get validSelector() {
+            const validSelectorCategory = this.name.replace(invalidSelectorCharacters, "");
+            if (startsWithNumberRegex.test(validSelectorCategory)) {
+                // Selectors starting with a number are invalid. Just prepend an 'i' to counteract it.
+                validSelectorCategory = "i" + validSelectorCategory;
+            }
+            return this.isRoot
+                ? validSelectorCategory
+                : `${this.superCategory.validSelector}-${validSelectorCategory}`;
+        }
+
+        get isRoot() {
+            return !this.superCategory;
+        }
+
+        get commitCount() {
+            return this.#commits.length;
+        }
+
+        // The given categories are just strings.
+        // Inserts the commit into the lowest-level category for each of the categories given.
+        insertInto(commit, categories) {
+            for (const category of categories) {
+                if (category.indexOf("/") < 0) {
+                    const lcCategory = category.toLowerCase();
+                    if (!this.#subCategories.has(lcCategory))
+                        this.#subCategories.set(lcCategory, new Category(this, category));
+                    this.#subCategories.get(lcCategory).#commits.push(commit);
+                } else {
+                    const [firstSubCategory, lowerCategories] = category.split("/", 2);
+                    const lcFirstSubCategory = firstSubCategory.toLowerCase();
+                    if (!this.#subCategories.has(lcFirstSubCategory))
+                        this.#subCategories.set(
+                            lcFirstSubCategory,
+                            new Category(this, firstSubCategory)
+                        );
+                    this.#subCategories
+                        .get(lcFirstSubCategory)
+                        .insertInto(commit, [lowerCategories]);
+                }
+            }
+        }
+
+        sortedSubcategories() {
+            // For the sort: https://stackoverflow.com/a/45544166
+            const allKeys = [...this.#subCategories.keys()];
+            return allKeys.sort((left, right) => left.localeCompare(right));
+        }
+
+        // The order used by this is: first all the commits from this category, then recursively everything from the subcategories.
+        // Both are traversed in locale-sensitive alphabetical order.
+        forEachSorted(funktion) {
+            this.#commits.sort();
+
+            // Call the function at least once for each non-root category, so that all accordions can be created properly.
+            // For identifying these, index -1 is used.
+            if (!this.isRoot) funktion({}, -1, this);
+
+            for (const [index, commit] of this.#commits.entries()) {
+                funktion(commit, index, this);
+            }
+            this.sortedSubcategories().forEach(categoryKey => {
+                let subCategory = this.#subCategories.get(categoryKey);
+                subCategory.forEachSorted(funktion);
+            });
+        }
     }
 
     const retryButtons = document.querySelectorAll(".retry-fetch");
