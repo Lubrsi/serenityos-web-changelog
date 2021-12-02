@@ -1,0 +1,22 @@
+name: Check JS Style
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Prettier
+        run: sudo npm install -g prettier@2.5.0
+
+      - name: Check Prettier Version
+        run: prettier --version
+      
+      - name: Run Prettier
+        run: prettier --check index.js
