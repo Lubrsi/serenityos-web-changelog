@@ -242,9 +242,9 @@
 
     accessTokenForm.onsubmit = submitEvent => {
         submitEvent.preventDefault();
-        if (hasLocalStorage) window.localStorage.setItem("access-token", accessTokenInput.value);
-
-        currentAccessToken = accessTokenForm.value;
+        const accessToken = accessTokenInput.value;
+        if (hasLocalStorage) window.localStorage.setItem("access-token", accessToken);
+        currentAccessToken = accessToken;
 
         const tokenFormCollapse = new bootstrap.Collapse(accessTokenFormCollapse, {
             toggle: false,
