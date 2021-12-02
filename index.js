@@ -561,7 +561,7 @@
                     categoryCollapseElement.appendChild(commitListElement);
 
                     const commitCountElement = document.createElement("h6");
-                    const sectionPlural = category.commitCount != 1 ? "s" : "";
+                    const sectionPlural = category.commitCount !== 1 ? "s" : "";
                     commitCountElement.textContent = `${category.commitCount} commit${sectionPlural}`;
                     commitListElement.appendChild(commitCountElement);
 
