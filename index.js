@@ -343,23 +343,23 @@
     }
 
     function enableDateButtons() {
-        yesterdayButton.removeAttribute("disabled");
-        todayButton.removeAttribute("disabled");
-        tomorrowButton.removeAttribute("disabled");
-        monthlyToggleCheckbox.removeAttribute("disabled");
-        lastMonthButton.removeAttribute("disabled");
-        thisMonthButton.removeAttribute("disabled");
-        nextMonthButton.removeAttribute("disabled");
+        yesterdayButton.disabled = false;
+        todayButton.disabled = false;
+        tomorrowButton.disabled = false;
+        monthlyToggleCheckbox.disabled = false;
+        lastMonthButton.disabled = false;
+        thisMonthButton.disabled = false;
+        nextMonthButton.disabled = false;
     }
 
     function disableDateButtons() {
-        yesterdayButton.setAttribute("disabled", "");
-        todayButton.setAttribute("disabled", "");
-        tomorrowButton.setAttribute("disabled", "");
-        monthlyToggleCheckbox.setAttribute("disabled", "");
-        lastMonthButton.setAttribute("disabled", "");
-        thisMonthButton.setAttribute("disabled", "");
-        nextMonthButton.setAttribute("disabled", "");
+        yesterdayButton.disabled = true;
+        todayButton.disabled = true;
+        tomorrowButton.disabled = true;
+        monthlyToggleCheckbox.disabled = true;
+        lastMonthButton.disabled = true;
+        thisMonthButton.disabled = true;
+        nextMonthButton.disabled = true;
     }
 
     function getISODateString() {
