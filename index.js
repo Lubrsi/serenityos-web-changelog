@@ -312,6 +312,7 @@
 
         return fetch(finalUrl, {
             headers,
+            referrerPolicy: "no-referrer",
         });
     }
 
