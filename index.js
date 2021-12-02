@@ -717,7 +717,7 @@
         }
 
         get validSelector() {
-            const validSelectorCategory = this.name.replace(invalidSelectorCharacters, "");
+            let validSelectorCategory = this.name.replace(invalidSelectorCharacters, "");
             if (startsWithNumberRegex.test(validSelectorCategory)) {
                 // Selectors starting with a number are invalid. Just prepend an 'i' to counteract it.
                 validSelectorCategory = "i" + validSelectorCategory;
