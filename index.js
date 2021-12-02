@@ -25,6 +25,7 @@
     const removeAccessTokenButton = document.getElementById("remove-access-token-button");
     const noAccessTokenAlert = document.getElementById("no-access-token-alert");
     const haveAccessTokenAlert = document.getElementById("have-access-token-alert");
+    const submitAccessTokenButton = document.getElementById("submit-access-token-button");
 
     const monthlyToggleCheckbox = document.getElementById("monthly-toggle");
     const lastMonthButton = document.getElementById("last-month-button");
@@ -46,6 +47,8 @@
     const hasLocalStorage = !!window.localStorage; // This is mostly for opening the page with LibWeb, as it does not currently support localStorage.
 
     let currentAccessToken = null;
+
+    let ongoingFetchAbortController = null;
 
     let categoryCollapseElements = [];
 
@@ -145,7 +148,18 @@
         }
     }
 
+    // Returns true if aborted an _ongoing_ fetch (i.e. not previously aborted), false otherwise.
+    function abortFetchIfNeeded() {
+        if (!ongoingFetchAbortController) return false;
+
+        const previouslyAborted = ongoingFetchAbortController.signal.aborted;
+        ongoingFetchAbortController.abort();
+        return !previouslyAborted;
+    }
+
     function setDateToToday() {
+        abortFetchIfNeeded();
+
         // May have potentially gone past midnight.
         const today = new Date();
 
@@ -158,6 +172,8 @@
     }
 
     yesterdayButton.onclick = () => {
+        abortFetchIfNeeded();
+
         dateNumber--;
 
         if (dateNumber <= 0) {
@@ -181,6 +197,8 @@
     todayButton.onclick = setDateToToday;
 
     tomorrowButton.onclick = () => {
+        abortFetchIfNeeded();
+
         dateNumber++;
 
         if (dateNumber > getLastDayOfMonth(year, monthNumber)) {
@@ -198,6 +216,8 @@
     };
 
     lastMonthButton.onclick = () => {
+        abortFetchIfNeeded();
+
         monthNumber--;
 
         if (monthNumber <= 0) {
@@ -212,6 +232,8 @@
     thisMonthButton.onclick = setDateToToday;
 
     nextMonthButton.onclick = () => {
+        abortFetchIfNeeded();
+
         monthNumber++;
 
         if (monthNumber > 12) {
@@ -224,6 +246,8 @@
     };
 
     monthlyToggleCheckbox.onchange = () => {
+        abortFetchIfNeeded();
+
         monthly = monthlyToggleCheckbox.checked;
 
         showAppropriateDateButtons();
@@ -245,6 +269,12 @@
 
     accessTokenForm.onsubmit = submitEvent => {
         submitEvent.preventDefault();
+
+        // Don't allow the user to change the access token whilst fetching commits.
+        if (submitAccessTokenButton.disabled) return;
+
+        const abortedFetch = abortFetchIfNeeded();
+
         const accessToken = accessTokenInput.value;
         if (hasLocalStorage) window.localStorage.setItem("access-token", accessToken);
         currentAccessToken = accessToken;
@@ -256,6 +286,9 @@
 
         noAccessTokenAlert.classList.add("d-none");
         haveAccessTokenAlert.classList.remove("d-none");
+
+        if (abortedFetch)
+            createChangelog();
     };
 
     removeAccessTokenButton.onclick = () => {
@@ -313,9 +346,12 @@
             headers["Authorization"] = `token ${currentAccessToken}`;
         }
 
+        ongoingFetchAbortController = new AbortController();
+
         return fetch(finalUrl, {
             headers,
             referrerPolicy: "no-referrer",
+            signal: ongoingFetchAbortController.signal,
         });
     }
 
@@ -421,7 +457,10 @@
 
         loadingIndicator.classList.remove("d-none");
 
-        disableDateButtons();
+        if (!hasFetch) {
+            disableDateButtons();
+            submitAccessTokenButton.disabled = true;
+        }
 
         changelogElement.classList.add("d-none");
         changelogBodyElement.innerHTML = "";
@@ -457,7 +496,11 @@
             );
 
             loadingIndicator.classList.add("d-none");
-            enableDateButtons();
+
+            if (!hasFetch) {
+                enableDateButtons();
+                submitAccessTokenButton.disabled = false;
+            }
 
             if (commits.length === 0) {
                 noCommitsMessage.classList.remove("d-none");
@@ -649,6 +692,9 @@
                     .append(...commitElements.children);
             });
         } catch (e) {
+            // Aborting the fetch is not an error here.
+            if (e.name === "AbortError") return;
+
             console.error(e);
             loadingIndicator.classList.add("d-none");
             fetchFailed();
@@ -752,6 +798,9 @@
     retryButtons.forEach(button => {
         button.onclick = createChangelog;
     });
+
+    // Enable the disabled by default date buttons if we have fetch, as we can allow the user to change the dates by aborting the fetch.
+    if (hasFetch) enableDateButtons();
 
     createChangelog();
 })();
