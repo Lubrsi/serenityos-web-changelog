@@ -531,11 +531,8 @@
                     const categoryCollapseOpenButtonElement = document.createElement("button");
                     categoryCollapseOpenButtonElement.classList.add("accordion-button");
                     categoryCollapseOpenButtonElement.type = "button";
-                    categoryCollapseOpenButtonElement.setAttribute("data-bs-toggle", "collapse");
-                    categoryCollapseOpenButtonElement.setAttribute(
-                        "data-bs-target",
-                        `#${accordionCollapseId}`
-                    );
+                    categoryCollapseOpenButtonElement.dataset.bsToggle = "collapse";
+                    categoryCollapseOpenButtonElement.dataset.bsTarget = `#${accordionCollapseId}`;
                     categoryCollapseOpenButtonElement.setAttribute("aria-expanded", "true");
                     categoryCollapseOpenButtonElement.setAttribute(
                         "aria-controls",
@@ -606,8 +603,8 @@
                 const detailsButtonElement = document.createElement("button");
                 detailsButtonElement.classList.add("btn", "btn-primary", "small-button", "ms-2");
                 detailsButtonElement.setAttribute("type", "button");
-                detailsButtonElement.setAttribute("data-bs-toggle", "collapse");
-                detailsButtonElement.setAttribute("data-bs-target", `#${detailsId}`);
+                detailsButtonElement.dataset.bsToggle = "collapse";
+                detailsButtonElement.dataset.bsTarget = `#${detailsId}`;
                 detailsButtonElement.setAttribute("aria-expanded", "false");
                 detailsButtonElement.setAttribute("aria-controls", detailsId);
                 detailsButtonElement.textContent = "Details";
@@ -635,7 +632,7 @@
                         authorImage.width = 20;
                         authorImage.height = 20;
                         // Use the small, 20x20 version as we limit the image size to 20x20.
-                        authorImage.setAttribute("data-src", commit.author.avatar_url + "&s=20");
+                        authorImage.dataset.src = `${commit.author.avatar_url}&s=20`;
                         committerDetailsElement.appendChild(authorImage);
 
                         authorName = document.createElement("span");
@@ -658,7 +655,7 @@
                     const committerImage = document.createElement("img");
                     committerImage.classList.add("lazyload", "img-fluid", "rounded");
                     // Use the small, 20x20 version as we limit the image size to 20x20.
-                    committerImage.setAttribute("data-src", commit.committer.avatar_url + "&s=20");
+                    committerImage.dataset.src = `${commit.committer.avatar_url}&s=20`;
                     committerImage.width = 20;
                     committerImage.height = 20;
                     committerDetailsElement.appendChild(committerImage);
