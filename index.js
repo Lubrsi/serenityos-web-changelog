@@ -747,11 +747,12 @@
                 } else {
                     const [firstSubCategory, lowerCategories] = category.split("/", 2);
                     const lcFirstSubCategory = firstSubCategory.toLowerCase();
-                    if (!this.#subCategories.has(lcFirstSubCategory))
+                    if (!this.#subCategories.has(lcFirstSubCategory)) {
                         this.#subCategories.set(
                             lcFirstSubCategory,
                             new Category(this, firstSubCategory)
                         );
+                    }
                     this.#subCategories
                         .get(lcFirstSubCategory)
                         .insertInto(commit, [lowerCategories]);
