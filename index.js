@@ -322,11 +322,11 @@
                     xhr.setRequestHeader("Authorization", `token ${currentAccessToken}`);
 
                 xhr.onload = function () {
-                    const jsonResponse = JSON.parse(this.responseText);
-
-                    if (pageNumber === 1)
-                        resolve({ linkHeader: this.getResponseHeader("Link"), json: jsonResponse });
-                    else resolve(jsonResponse);
+                    // NOTE: LibWeb currently doesn't support responseType, so we have to manually parse the responseText as JSON.
+                    resolve({
+                        linkHeader: this.getResponseHeader("Link"),
+                        json: JSON.parse(this.responseText),
+                    });
                 };
                 xhr.onerror = () => reject();
                 xhr.send();
@@ -384,7 +384,9 @@
                 );
                 allPageFetches.push(pageFetch);
             } else {
-                const pageXHR = getPageNumber(urlWithBaseParameters, pageNumber);
+                const pageXHR = getPageNumber(urlWithBaseParameters, pageNumber).then(
+                    response => response.json
+                );
                 allPageFetches.push(pageXHR);
             }
         }
