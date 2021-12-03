@@ -42,6 +42,7 @@
     const titleMessageRegex = /: ?(.*)/; // A regex is used instead of splitting in case the title has multiple ':'.
     const invalidSelectorCharacters = /([>+\/.* ,])/g; // FIXME: This is definitely not a complete regex.
     const startsWithNumberRegex = /^\d/;
+    const linkPageURLRegex = /<(.*)>/; // Used in pagination, see paginate.
 
     const hasFetch = !!window.fetch; // This is mostly for opening the page with LibWeb, as it does not currently support fetch().
     const hasLocalStorage = !!window.localStorage; // This is mostly for opening the page with LibWeb, as it does not currently support localStorage.
@@ -287,8 +288,7 @@
         noAccessTokenAlert.classList.add("d-none");
         haveAccessTokenAlert.classList.remove("d-none");
 
-        if (abortedFetch)
-            createChangelog();
+        if (abortedFetch) createChangelog();
     };
 
     removeAccessTokenButton.onclick = () => {
@@ -310,30 +310,25 @@
         loadFailedAlert.classList.remove("d-none");
     }
 
-    async function getPageNumber(url, parameters, pageNumber) {
-        parameters.page = pageNumber;
-
-        let finalUrl = url;
-
-        let firstKey = true;
-        for (const key in parameters) {
-            finalUrl += `${firstKey ? "?" : "&"}${key}=${parameters[key]}`;
-            firstKey = false;
-        }
+    async function getPageNumber(urlWithBaseParameters, pageNumber) {
+        const finalUrl = `${urlWithBaseParameters}&page=${pageNumber}`;
 
         if (!hasFetch) {
             return new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
                 xhr.open("GET", finalUrl);
                 xhr.setRequestHeader("Accept", "application/vnd.github.v3+json");
-                // LibWeb does not expose "onload" just yet, but does fire the load event.
-                xhr.addEventListener("load", function () {
-                    if (this.status >= 200 && this.status <= 299)
-                        resolve(JSON.parse(this.responseText));
-                    else reject();
-                });
-                // LibWeb does not expose "onerror" just yet, but does fire the error event.
-                xhr.addEventListener("error", () => reject());
+                if (currentAccessToken !== null)
+                    xhr.setRequestHeader("Authorization", `token ${currentAccessToken}`);
+
+                xhr.onload = function () {
+                    const jsonResponse = JSON.parse(this.responseText);
+
+                    if (pageNumber === 1)
+                        resolve({ linkHeader: this.getResponseHeader("Link"), json: jsonResponse });
+                    else resolve(jsonResponse);
+                };
+                xhr.onerror = () => reject();
                 xhr.send();
             });
         }
@@ -346,8 +341,6 @@
             headers["Authorization"] = `token ${currentAccessToken}`;
         }
 
-        ongoingFetchAbortController = new AbortController();
-
         return fetch(finalUrl, {
             headers,
             referrerPolicy: "no-referrer",
@@ -355,31 +348,48 @@
         });
     }
 
-    async function paginate(url, parameters, shouldStop) {
-        let pageNumber = 1;
+    async function paginate(url, parameters) {
+        let urlWithBaseParameters = `${url}?per_page=${numCommitsPerPage}`;
+        for (const key in parameters) urlWithBaseParameters += `&${key}=${parameters[key]}`;
 
-        let finalResponse = [];
+        ongoingFetchAbortController = new AbortController();
 
-        parameters.per_page = numCommitsPerPage;
+        const firstPageFetch = await getPageNumber(urlWithBaseParameters, 1);
+        const allPageFetches = [hasFetch ? firstPageFetch.json() : firstPageFetch.json];
 
-        while (true) {
-            const response = await getPageNumber(url, parameters, pageNumber);
+        // https://docs.github.com/en/rest/guides/traversing-with-pagination
 
+        const linkHeader = hasFetch
+            ? firstPageFetch.headers.get("Link")
+            : firstPageFetch.linkHeader;
+
+        // If there is no link header, there is only one page, return.
+        if (!linkHeader) return Promise.all(allPageFetches);
+
+        const relations = linkHeader.split(",");
+        const lastPageRelationship = relations.find(
+            relationship => relationship.indexOf('rel="last"') !== -1
+        );
+        if (!lastPageRelationship)
+            throw new Error("GitHub API returned a Link header with no 'last' relationship.");
+
+        const lastPageURL = linkPageURLRegex.exec(lastPageRelationship)[1];
+        const lastPageSearchParams = new URLSearchParams(lastPageURL);
+        const lastPageNumber = parseInt(lastPageSearchParams.get("page"));
+
+        for (let pageNumber = 2; pageNumber <= lastPageNumber; ++pageNumber) {
             if (hasFetch) {
-                const jsonResponse = await response.json();
-                finalResponse = finalResponse.concat(jsonResponse);
-
-                if (shouldStop(jsonResponse)) break;
+                const pageFetch = getPageNumber(urlWithBaseParameters, pageNumber).then(response =>
+                    response.json()
+                );
+                allPageFetches.push(pageFetch);
             } else {
-                finalResponse = finalResponse.concat(response);
-
-                if (shouldStop(response)) break;
+                const pageXHR = getPageNumber(urlWithBaseParameters, pageNumber);
+                allPageFetches.push(pageXHR);
             }
-
-            pageNumber++;
         }
 
-        return finalResponse;
+        return Promise.all(allPageFetches);
     }
 
     function enableDateButtons() {
@@ -468,12 +478,6 @@
         categoryCollapseElements = [];
 
         try {
-            const shouldStop = jsonResponse => {
-                // If there's the exact number of commits we requested, we can't know for sure if that's all of them.
-                // This is because the GH API doesn't tell us if there is anymore data, so we just have to fetch the next page.
-                return jsonResponse.length !== numCommitsPerPage;
-            };
-
             const parameters = {};
 
             if (!monthly) {
@@ -489,11 +493,12 @@
                 parameters["until"] = `${year}-${month}-${date}T23:59:59Z`;
             }
 
-            const commits = await paginate(
-                "https://api.github.com/repos/SerenityOS/serenity/commits",
-                parameters,
-                shouldStop
-            );
+            const commits = (
+                await paginate(
+                    "https://api.github.com/repos/SerenityOS/serenity/commits",
+                    parameters
+                )
+            ).flat();
 
             loadingIndicator.classList.add("d-none");
 
