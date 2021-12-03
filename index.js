@@ -33,6 +33,9 @@
     const dailyButtons = document.getElementById("daily-buttons");
     const monthlyButtons = document.getElementById("monthly-buttons");
 
+    const categoryTemplate = document.getElementById("category-template");
+    const commitElementTemplate = document.getElementById("commit-element-template");
+
     const numCommitsPerPage = 100; // This is just a guess based on how many commits we have a day.
     const categoryRegex = /(^\S[^"]*?):/;
     const titleMessageRegex = /: ?(.*)/; // A regex is used instead of splitting in case the title has multiple ':'.
@@ -518,35 +521,25 @@
                           );
 
                 const createAndAppendSection = () => {
-                    const categorySectionElement = document.createElement("section");
+                    const categorySectionElement =
+                        categoryTemplate.content.cloneNode(true).firstElementChild;
                     categorySectionElement.id = categoryId;
-                    categorySectionElement.classList.add("accordion-item");
                     parentElement.classList.add("accordion");
                     parentElement.appendChild(categorySectionElement);
 
-                    const categoryHeaderElement = document.createElement("h4");
-                    categoryHeaderElement.id = accordionHeaderId;
-                    categoryHeaderElement.classList.add("accordion-header");
-                    categorySectionElement.appendChild(categoryHeaderElement);
+                    categorySectionElement.querySelector("h4.accordion-header").id =
+                        accordionHeaderId;
 
-                    const categoryCollapseOpenButtonElement = document.createElement("button");
-                    categoryCollapseOpenButtonElement.classList.add("accordion-button");
-                    categoryCollapseOpenButtonElement.type = "button";
-                    categoryCollapseOpenButtonElement.dataset.bsToggle = "collapse";
-                    categoryCollapseOpenButtonElement.dataset.bsTarget = `#${accordionCollapseId}`;
-                    categoryCollapseOpenButtonElement.setAttribute("aria-expanded", "true");
-                    categoryCollapseOpenButtonElement.setAttribute(
-                        "aria-controls",
-                        accordionCollapseId
+                    const categoryCollapseOpenButtonElement = categorySectionElement.querySelector(
+                        "h4.accordion-header button"
                     );
+                    categoryCollapseOpenButtonElement.dataset.bsTarget = `#${accordionCollapseId}`;
                     categoryCollapseOpenButtonElement.textContent = category.name;
-                    categoryHeaderElement.appendChild(categoryCollapseOpenButtonElement);
 
-                    const categoryCollapseElement = document.createElement("div");
+                    const categoryCollapseElement =
+                        categorySectionElement.querySelector("div.accordion-collapse");
                     categoryCollapseElement.id = accordionCollapseId;
-                    categoryCollapseElement.classList.add("accordion-collapse", "collapse", "show");
                     categoryCollapseElement.setAttribute("aria-labelledby", accordionHeaderId);
-                    categorySectionElement.appendChild(categoryCollapseElement);
 
                     const categoryCollapseBootstrapClass = new bootstrap.Collapse(
                         categoryCollapseElement,
@@ -554,14 +547,12 @@
                     );
                     categoryCollapseElements.push(categoryCollapseBootstrapClass);
 
-                    const commitListElement = document.createElement("ul");
-                    commitListElement.classList.add("accordion-body", "list-unstyled");
-                    categoryCollapseElement.appendChild(commitListElement);
-
-                    const commitCountElement = document.createElement("h6");
+                    const commitCountElement = categorySectionElement.querySelector("ul > h6");
                     const sectionPlural = category.commitCount !== 1 ? "s" : "";
                     commitCountElement.textContent = `${category.commitCount} commit${sectionPlural}`;
-                    commitListElement.appendChild(commitCountElement);
+                    categorySectionElement
+                        .querySelector("ul.accordion-body")
+                        .appendChild(commitCountElement);
 
                     return categorySectionElement;
                 };
@@ -575,100 +566,71 @@
                 // This is a fake commit so that all category accordions are properly created.
                 if (index === -1) return;
 
-                const commitListElement = categorySectionElement.querySelector("ul.list-unstyled");
+                const commitElements = commitElementTemplate.content.cloneNode(true);
+                const commitListEntryElement = commitElements.querySelector("li");
+                const commitTitleElement = commitListEntryElement.querySelector("a");
 
-                const commitListEntryElement = document.createElement("li");
-                commitListEntryElement.classList.add("d-flex", "align-items-center");
-                commitListElement.appendChild(commitListEntryElement);
-
-                const commitTitleElement = document.createElement("a");
                 const messageParts = commit.commit.message.split("\n");
-
                 if (category !== "Uncategorized") {
                     const titleMessage = titleMessageRegex.exec(messageParts[0])[1];
                     commitTitleElement.textContent = titleMessage;
                 } else {
                     commitTitleElement.textContent = messageParts[0];
                 }
-
                 commitTitleElement.href = commit.html_url;
-                commitTitleElement.target = "_blank";
-                commitTitleElement.setAttribute("rel", "noopener noreferrer");
-                commitListEntryElement.appendChild(commitTitleElement);
 
                 const detailsId = `${validSelectorCategory}${index}`.replace(
                     invalidSelectorCharacters,
                     ""
                 );
 
-                const detailsButtonElement = document.createElement("button");
-                detailsButtonElement.classList.add("btn", "btn-primary", "small-button", "ms-2");
-                detailsButtonElement.setAttribute("type", "button");
-                detailsButtonElement.dataset.bsToggle = "collapse";
+                const detailsButtonElement = commitListEntryElement.querySelector("button");
                 detailsButtonElement.dataset.bsTarget = `#${detailsId}`;
-                detailsButtonElement.setAttribute("aria-expanded", "false");
                 detailsButtonElement.setAttribute("aria-controls", detailsId);
-                detailsButtonElement.textContent = "Details";
-                commitListEntryElement.appendChild(detailsButtonElement);
 
-                const commitDetailsElement = document.createElement("div");
+                const commitDetailsElement = commitElements.querySelector("div");
                 commitDetailsElement.id = detailsId;
-                commitDetailsElement.classList.add("collapse");
-                commitListElement.appendChild(commitDetailsElement);
+                const committerDetailsElement = commitDetailsElement.querySelector("div > h5");
 
-                const commitDetailsBodyElement = document.createElement("div");
-                commitDetailsBodyElement.classList.add("card", "card-body", "mt-2");
-                commitDetailsElement.appendChild(commitDetailsBodyElement);
-
-                const committerDetailsElement = document.createElement("h5");
-                committerDetailsElement.classList.add("card-title", "d-flex", "align-items-center");
-                commitDetailsBodyElement.appendChild(committerDetailsElement);
-
-                let authorName;
-
+                const authorName = committerDetailsElement.querySelector("span.author-name");
                 if (commit.author !== null) {
                     if (commit.author.login !== commit.committer.login) {
-                        const authorImage = document.createElement("img");
-                        authorImage.classList.add("lazyload", "img-fluid", "rounded");
-                        authorImage.width = 20;
-                        authorImage.height = 20;
                         // Use the small, 20x20 version as we limit the image size to 20x20.
-                        authorImage.dataset.src = `${commit.author.avatar_url}&s=20`;
-                        committerDetailsElement.appendChild(authorImage);
-
-                        authorName = document.createElement("span");
-                        authorName.classList.add("ms-2", "me-2");
+                        committerDetailsElement.querySelector(
+                            "img.author-image"
+                        ).dataset.src = `${commit.author.avatar_url}&s=20`;
                         authorName.textContent = `${commit.author.login} authored`;
+                    } else {
+                        committerDetailsElement
+                            .querySelector("img.author-image")
+                            .classList.add("d-none");
+                        authorName.classList.add("d-none");
                     }
                 } else {
-                    authorName = document.createElement("span");
+                    committerDetailsElement
+                        .querySelector("img.author-image")
+                        .classList.add("d-none");
                     authorName.classList.add("me-2");
                     authorName.textContent = `${commit.commit.author.name} authored`;
                 }
-
-                if (authorName) committerDetailsElement.appendChild(authorName);
 
                 // This occurs if the commit is signed.
                 if (commit.commit.committer.name !== "GitHub") {
                     if (!commit.author || commit.author.login !== commit.committer.login)
                         authorName.textContent += " and";
+                    authorName.classList.add("me-2");
 
-                    const committerImage = document.createElement("img");
-                    committerImage.classList.add("lazyload", "img-fluid", "rounded");
                     // Use the small, 20x20 version as we limit the image size to 20x20.
-                    committerImage.dataset.src = `${commit.committer.avatar_url}&s=20`;
-                    committerImage.width = 20;
-                    committerImage.height = 20;
-                    committerDetailsElement.appendChild(committerImage);
+                    committerDetailsElement.querySelector(
+                        "img.committer-image"
+                    ).dataset.src = `${commit.committer.avatar_url}&s=20`;
 
-                    const committerName = document.createElement("span");
-                    committerName.classList.add("ms-2");
-                    committerName.textContent = `${commit.committer.login} committed`;
-                    committerDetailsElement.appendChild(committerName);
+                    committerDetailsElement.querySelector(
+                        "span.committer-name"
+                    ).textContent = `${commit.committer.login} committed`;
                 }
 
-                const commitMessageElement = document.createElement("pre");
-                commitMessageElement.classList.add("card-text");
+                const commitMessageElement = commitDetailsElement.querySelector("div > pre");
 
                 if (messageParts.length > 1) {
                     messageParts.forEach((part, index) => {
@@ -677,11 +639,14 @@
 
                         commitMessageElement.textContent += part + "\n";
                     });
-
-                    commitDetailsBodyElement.appendChild(commitMessageElement);
                 } else {
                     committerDetailsElement.classList.add("mb-0");
                 }
+
+                // We need to do this last as the array spread removes the children from the HTMLCollection.
+                categorySectionElement
+                    .querySelector("ul.list-unstyled")
+                    .append(...commitElements.children);
             });
         } catch (e) {
             console.error(e);
