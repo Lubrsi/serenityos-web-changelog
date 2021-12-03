@@ -279,7 +279,37 @@
 
                 <p class="text-center mb-2" id="commit-count"></p>
 
-                <main id="changelog-body" class="accordion"></main>
+                <main id="changelog-body" class="accordion">
+                    <template id="category-template">
+                        <section class="accordion-item">
+                            <h4 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" aria-expanded="true"></button>
+                            </h4>
+                            <div class="accordion-collapse collapse show">
+                                <ul class="accordion-body list-unstyled">
+                                    <h6></h6>
+                                </ul>
+                            </div>
+                        </section>
+                    </template>
+                    <template id="commit-element-template">
+                        <li class="d-flex align-items-center">
+                            <a target="_blank" rel="noopener noreferrer"></a>
+                            <button class="btn btn-primary small-button ms-2" type="button" data-bs-toggle="collapse" aria-expanded="false">Details</button>
+                        </li>
+                        <div class="collapse">
+                            <div class="card card-body mt-2">
+                                <h5 class="card-title d-flex align-items-center">
+                                    <img class="lazyload img-fluid rounded author-image" width=20 height=20/>
+                                    <span class="ms-2 author-name"></span>
+                                    <img class="lazyload img-fluid rounded committer-image" width=20 height=20/>
+                                    <span class="ms-2 committer-name"></span>
+                                </h5>
+                                <pre class="card-text"></pre>
+                            </div>
+                        </div>
+                    </template>
+                </main>
             </div>
 
             <p class="text-center m-5">
