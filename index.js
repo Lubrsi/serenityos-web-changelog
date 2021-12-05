@@ -649,24 +649,23 @@
                 const committerDetailsElement = commitDetailsElement.querySelector("div > h5");
 
                 const authorName = committerDetailsElement.querySelector("span.author-name");
+                const authorImage = committerDetailsElement.querySelector("img.author-image");
+
+                let hasAuthorImage = false;
+
                 if (commit.author !== null) {
                     if (commit.author.login !== commit.committer.login) {
                         // Use the small, 20x20 version as we limit the image size to 20x20.
-                        committerDetailsElement.querySelector(
-                            "img.author-image"
-                        ).dataset.src = `${commit.author.avatar_url}&s=20`;
+                        authorImage.dataset.src = `${commit.author.avatar_url}&s=20`;
                         authorName.textContent = `${commit.author.login} authored`;
+                        hasAuthorImage = true;
                     } else {
-                        committerDetailsElement
-                            .querySelector("img.author-image")
-                            .classList.add("d-none");
-                        authorName.classList.add("d-none");
+                        authorImage.remove();
+                        authorName.remove();
                     }
                 } else {
-                    committerDetailsElement
-                        .querySelector("img.author-image")
-                        .classList.add("d-none");
-                    authorName.classList.add("me-2");
+                    authorImage.remove();
+                    authorName.classList.remove("ms-2");
                     authorName.textContent = `${commit.commit.author.name} authored`;
                 }
 
@@ -675,18 +674,33 @@
                 const committerNameElement =
                     committerDetailsElement.querySelector("span.committer-name");
 
+                let hasCommitterImage = false;
+
                 // This occurs if the commit is signed.
                 if (commit.commit.committer.name !== "GitHub") {
                     if (!commit.author || commit.author.login !== commit.committer.login)
                         authorName.textContent += " and";
-                    authorName.classList.add("me-2");
 
                     // Use the small, 20x20 version as we limit the image size to 20x20.
-                    committerImageElement.dataset.src = `${commit.committer.avatar_url}&s=20`;
-
-                    committerNameElement.textContent = `${commit.committer.login} committed`;
+                    if (commit.committer !== null) {
+                        committerImageElement.dataset.src = `${commit.committer.avatar_url}&s=20`;
+                        committerNameElement.textContent = `${commit.committer.login} committed`;
+                        authorName.classList.add("me-2");
+                        hasCommitterImage = true;
+                    } else {
+                        committerImageElement.remove();
+                        committerNameElement.textContent = `${commit.commit.committer.name} committed`;
+                        committerNameElement.classList.remove("ms-2");
+                    }
                 } else {
                     committerImageElement.remove();
+                    committerNameElement.remove();
+                }
+
+                if (!hasAuthorImage && !hasCommitterImage) {
+                    // If there's no images, combine the two name elements.
+                    authorName.removeAttribute("class");
+                    authorName.textContent += ` ${committerNameElement.textContent}`;
                     committerNameElement.remove();
                 }
 
