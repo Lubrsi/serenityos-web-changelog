@@ -574,6 +574,10 @@
                     const categorySectionElement =
                         categoryTemplate.content.cloneNode(true).firstElementChild;
                     categorySectionElement.id = categoryId;
+
+                    if (!category.superCategory.isRoot && category.superCategory.commitCount === 0)
+                        categorySectionElement.style.marginTop = "0";
+
                     parentElement.classList.add("accordion");
                     parentElement.appendChild(categorySectionElement);
 
@@ -598,11 +602,13 @@
                     categoryCollapseElements.push(categoryCollapseBootstrapClass);
 
                     const commitCountElement = categorySectionElement.querySelector("ul > h6");
-                    const sectionPlural = category.commitCount !== 1 ? "s" : "";
-                    commitCountElement.textContent = `${category.commitCount} commit${sectionPlural}`;
-                    categorySectionElement
-                        .querySelector("ul.accordion-body")
-                        .appendChild(commitCountElement);
+
+                    if (category.commitCount !== 0) {
+                        const sectionPlural = category.commitCount !== 1 ? "s" : "";
+                        commitCountElement.textContent = `${category.commitCount} commit${sectionPlural}`;
+                    } else {
+                        commitCountElement.remove();
+                    }
 
                     return categorySectionElement;
                 };
