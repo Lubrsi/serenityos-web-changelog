@@ -627,7 +627,7 @@
                 const commitTitleElement = commitListEntryElement.querySelector("a");
 
                 const messageParts = commit.commit.message.split("\n");
-                if (category !== "Uncategorized") {
+                if (category.name !== "Uncategorized") {
                     const titleMessage = titleMessageRegex.exec(messageParts[0])[1];
                     commitTitleElement.textContent = titleMessage;
                 } else {
