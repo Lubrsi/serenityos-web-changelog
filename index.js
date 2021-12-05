@@ -670,6 +670,11 @@
                     authorName.textContent = `${commit.commit.author.name} authored`;
                 }
 
+                const committerImageElement =
+                    committerDetailsElement.querySelector("img.committer-image");
+                const committerNameElement =
+                    committerDetailsElement.querySelector("span.committer-name");
+
                 // This occurs if the commit is signed.
                 if (commit.commit.committer.name !== "GitHub") {
                     if (!commit.author || commit.author.login !== commit.committer.login)
@@ -677,13 +682,12 @@
                     authorName.classList.add("me-2");
 
                     // Use the small, 20x20 version as we limit the image size to 20x20.
-                    committerDetailsElement.querySelector(
-                        "img.committer-image"
-                    ).dataset.src = `${commit.committer.avatar_url}&s=20`;
+                    committerImageElement.dataset.src = `${commit.committer.avatar_url}&s=20`;
 
-                    committerDetailsElement.querySelector(
-                        "span.committer-name"
-                    ).textContent = `${commit.committer.login} committed`;
+                    committerNameElement.textContent = `${commit.committer.login} committed`;
+                } else {
+                    committerImageElement.remove();
+                    committerNameElement.remove();
                 }
 
                 const commitMessageElement = commitDetailsElement.querySelector("div > pre");
