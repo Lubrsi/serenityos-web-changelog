@@ -779,7 +779,7 @@
         // Inserts the commit into the lowest-level category for each of the categories given.
         insertInto(commit, categories) {
             for (const category of categories) {
-                if (category.indexOf("/") < 0) {
+                if (category.startsWith("/") || category.indexOf("/") < 0) {
                     const lcCategory = category.toLowerCase();
                     if (!this.#subCategories.has(lcCategory))
                         this.#subCategories.set(lcCategory, new Category(this, category));
