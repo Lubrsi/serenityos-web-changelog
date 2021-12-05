@@ -38,7 +38,7 @@
     const commitElementTemplate = document.getElementById("commit-element-template");
 
     const numCommitsPerPage = 100; // This is just a guess based on how many commits we have a day.
-    const categoryRegex = /(^\S[^"\r\n]*?):(?!\^\))/;
+    const categoryRegex = /(^\S[^"\r\n:]*?):(?!\^\)|:)/;
     const titleMessageRegex = /: ?(.*)/; // A regex is used instead of splitting in case the title has multiple ':'.
     const invalidSelectorCharacters = /([>+\/.* ,{}\[\]\(\)&])/g; // FIXME: This is definitely not a complete regex.
     const startsWithNumberRegex = /^\d/;
