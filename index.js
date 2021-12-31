@@ -47,6 +47,9 @@
     const hasFetch = !!window.fetch; // This is mostly for opening the page with LibWeb, as it does not currently support fetch().
     const hasLocalStorage = !!window.localStorage; // This is mostly for opening the page with LibWeb, as it does not currently support localStorage.
 
+    const dayFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "full" });
+    const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" });
+
     let currentAccessToken = null;
 
     let ongoingFetchAbortController = null;
@@ -440,24 +443,9 @@
         const currentDate = new Date(year, monthNumber - 1, dateNumber);
 
         if (!monthly) {
-            dateElement.textContent = `For ${currentDate.toDateString()}`;
+            dateElement.textContent = `For ${dayFormatter.format(currentDate)}`;
         } else {
-            const monthNames = [
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December",
-            ];
-            const monthName = monthNames[monthNumber - 1];
-            dateElement.textContent = `For ${monthName} ${year}`;
+            dateElement.textContent = `For ${monthFormatter.format(currentDate)}`;
         }
 
         noCommitsMessage.classList.add("d-none");
