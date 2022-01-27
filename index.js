@@ -43,6 +43,7 @@
     const invalidSelectorCharacters = /([>+\/.* ,{}\[\]\(\)&])/g; // FIXME: This is definitely not a complete regex.
     const startsWithNumberRegex = /^\d/;
     const linkPageURLRegex = /<(.*)>/; // Used in pagination, see paginate.
+    const revertRegex = /Revert "(.*)"/; // Used to check wether a commit has been reverted
 
     const hasFetch = !!window.fetch; // This is mostly for opening the page with LibWeb, as it does not currently support fetch().
     const hasLocalStorage = !!window.localStorage; // This is mostly for opening the page with LibWeb, as it does not currently support localStorage.
@@ -615,9 +616,17 @@
                 const commitTitleElement = commitListEntryElement.querySelector("a");
 
                 const messageParts = commit.commit.message.split("\n");
+
+                const originalMessageFromRevert = getOriginalMessageFromRevert(messageParts[0]);
+
                 if (category.name !== "Uncategorized") {
-                    const titleMessage = titleMessageRegex.exec(messageParts[0])[1];
-                    commitTitleElement.textContent = titleMessage;
+                    if (originalMessageFromRevert !== null) {
+                        const titleMessage = titleMessageRegex.exec(originalMessageFromRevert)[1];
+                        commitTitleElement.textContent = titleMessage;
+                    } else {
+                        const titleMessage = titleMessageRegex.exec(messageParts[0])[1];
+                        commitTitleElement.textContent = titleMessage;
+                    }
                 } else {
                     commitTitleElement.textContent = messageParts[0];
                 }
@@ -632,14 +641,20 @@
                 detailsButtonElement.dataset.bsTarget = `#${detailsId}`;
                 detailsButtonElement.setAttribute("aria-controls", detailsId);
 
-                const commitDetailsElement = commitElements.querySelector("div");
+                const commitDetailsElement = commitElements.querySelector("div.collapse");
                 commitDetailsElement.id = detailsId;
-                const committerDetailsElement = commitDetailsElement.querySelector("div > h5");
+                const committerDetailsElement = commitDetailsElement.querySelector("div.details");
 
                 const authorName = committerDetailsElement.querySelector("span.author-name");
                 const authorImage = committerDetailsElement.querySelector("img.author-image");
 
                 let hasAuthorImage = false;
+
+                const revertBadge = commitElements.querySelector("div.badge");
+
+                if (originalMessageFromRevert === null) {
+                    revertBadge.remove();
+                }
 
                 if (commit.author !== null) {
                     if (commit.author.login !== commit.committer.login) {
@@ -721,8 +736,19 @@
         }
     }
 
+    function getOriginalMessageFromRevert(message) {
+        const result = revertRegex.exec(message);
+        if (!result) return null;
+
+        return result[1];
+    }
+
     function categorizeCommitMessage(message) {
         message = message.trim();
+
+        const revertResult = getOriginalMessageFromRevert(message);
+        if (revertResult !== null) message = revertResult;
+
         const categoryResult = categoryRegex.exec(message);
         if (!categoryResult) return ["Uncategorized"];
 
