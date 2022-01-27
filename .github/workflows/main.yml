@@ -17,6 +17,6 @@ jobs:
 
       - name: Check Prettier Version
         run: prettier --version
-      
+
       - name: Run Prettier
         run: prettier --check index.js
