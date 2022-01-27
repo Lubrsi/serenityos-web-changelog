@@ -641,9 +641,9 @@
                 detailsButtonElement.dataset.bsTarget = `#${detailsId}`;
                 detailsButtonElement.setAttribute("aria-controls", detailsId);
 
-                const commitDetailsElement = commitElements.querySelector("div.collapse");
-                commitDetailsElement.id = detailsId;
-                const committerDetailsElement = commitDetailsElement.querySelector("div.details");
+                const commitCollapseElement = commitElements.querySelector("div.collapse");
+                commitCollapseElement.id = detailsId;
+                const committerDetailsElement = commitCollapseElement.querySelector("div.details");
 
                 const authorName = committerDetailsElement.querySelector("span.author-name");
                 const authorImage = committerDetailsElement.querySelector("img.author-image");
@@ -707,7 +707,7 @@
                     committerNameElement.remove();
                 }
 
-                const commitMessageElement = commitDetailsElement.querySelector("div > pre");
+                const commitMessageElement = commitCollapseElement.querySelector("div > pre");
 
                 if (messageParts.length > 1) {
                     messageParts.forEach((part, index) => {
@@ -718,6 +718,35 @@
                     });
                 } else {
                     committerDetailsElement.classList.add("mb-0");
+                }
+
+                const linkedCommits = [];
+
+                for (const otherCommit of commits) {
+                    if (commit.commit.message.includes(otherCommit.sha)) {
+                        linkedCommits.push(otherCommit);
+                    }
+                }
+
+                const linkedCommitsElement =
+                    commitCollapseElement.querySelector("div.linked-commits");
+                const linkElements = linkedCommitsElement.querySelector("template#link");
+
+                for (const linkedCommit of linkedCommits) {
+                    const linkElement = linkElements.content.cloneNode(true);
+
+                    const sha = linkElement.querySelector("span.sha");
+                    const link = linkElement.querySelector("a.link");
+
+                    sha.textContent = linkedCommit.sha;
+                    link.href = linkedCommit.html_url;
+                    link.textContent = linkedCommit.commit.message.split("\n")[0];
+
+                    linkedCommitsElement.appendChild(linkElement);
+                }
+
+                if (linkedCommits.length === 0) {
+                    linkedCommitsElement.remove();
                 }
 
                 // We need to do this last as the array spread removes the children from the HTMLCollection.
