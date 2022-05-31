@@ -494,12 +494,12 @@
 
     function repoToViewToProperRepoName() {
         switch (repoToView) {
-        case "serenity":
-            return "SerenityOS";
-        case "jakt":
-            return "Jakt";
-        default:
-            return "Unknown Repo - Please Report";
+            case "serenity":
+                return "SerenityOS";
+            case "jakt":
+                return "Jakt";
+            default:
+                return "Unknown Repo - Please Report";
         }
     }
 
