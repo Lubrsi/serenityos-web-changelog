@@ -321,7 +321,7 @@
         haveAccessTokenAlert.classList.add("d-none");
     };
 
-    function changeRepo(newRepo) {
+    function changeRepo(newRepo, fromURL = false) {
         repoToView = newRepo;
 
         if (newRepo === "serenity") {
@@ -343,12 +343,13 @@
         }
 
         updateURLQuery();
-        createChangelog();
+
+        if (!fromURL) createChangelog();
     }
 
     const repoParam = params.get("repo");
     if (repoParam === "jakt") {
-        changeRepo(repoParam);
+        changeRepo(repoParam, true);
     }
 
     repoSelection.onchange = () => changeRepo(repoSelection.value);
