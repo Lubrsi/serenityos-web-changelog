@@ -37,6 +37,16 @@
     const categoryTemplate = document.getElementById("category-template");
     const commitElementTemplate = document.getElementById("commit-element-template");
 
+    const changelogTitle = document.getElementById("changelog-title");
+    const projectToDiscuss = document.getElementById("project-to-discuss");
+    const repoSelection = document.getElementById("repo-selection");
+    const repoOptionSerenity = document.getElementById("repo-option-serenity");
+    const repoOptionJakt = document.getElementById("repo-option-jakt");
+    const serenityCommitLogLink = document.getElementById("serenity-commit-log-link");
+    const jaktCommitLogLink = document.getElementById("jakt-commit-log-link");
+    const serenityDiscordChannels = document.getElementById("serenity-discord-channels");
+    const jaktDiscordChannels = document.getElementById("jakt-discord-channels");
+
     const numCommitsPerPage = 100;
     const categoryRegex = /(^\S[^"\r\n:]*?):(?!\^\)|:).+/;
     const titleMessageRegex = /: ?(.*)/; // A regex is used instead of splitting in case the title has multiple ':'.
@@ -53,6 +63,8 @@
     let currentAccessToken = null;
 
     let ongoingFetchAbortController = null;
+
+    let repoToView = "serenity";
 
     let categoryCollapseElements = [];
 
@@ -309,6 +321,38 @@
         haveAccessTokenAlert.classList.add("d-none");
     };
 
+    function changeRepo(newRepo) {
+        repoToView = newRepo;
+
+        if (newRepo === "serenity") {
+            jaktCommitLogLink.classList.add("d-none");
+            jaktDiscordChannels.classList.add("d-none");
+            serenityCommitLogLink.classList.remove("d-none");
+            serenityDiscordChannels.classList.remove("d-none");
+            changelogTitle.innerText = "SerenityOS Changelog";
+            projectToDiscuss.innerText = "SerenityOS";
+            repoOptionSerenity.selected = true;
+        } else {
+            jaktCommitLogLink.classList.remove("d-none");
+            jaktDiscordChannels.classList.remove("d-none");
+            serenityCommitLogLink.classList.add("d-none");
+            serenityDiscordChannels.classList.add("d-none");
+            changelogTitle.innerText = "Jakt Changelog";
+            projectToDiscuss.innerText = "Jakt";
+            repoOptionJakt.selected = true;
+        }
+
+        updateURLQuery();
+        createChangelog();
+    }
+
+    const repoParam = params.get("repo");
+    if (repoParam === "jakt") {
+        changeRepo(repoParam);
+    }
+
+    repoSelection.onchange = () => changeRepo(repoSelection.value);
+
     function fetchFailed() {
         loadFailedAlert.classList.remove("d-none");
     }
@@ -428,13 +472,13 @@
             window.history.replaceState(
                 null,
                 null,
-                `?date=${getISODateString()}&monthly=${monthly}`
+                `?date=${getISODateString()}&monthly=${monthly}&repo=${repoToView}`
             );
         } else {
             window.history.replaceState(
                 null,
                 null,
-                `?month=${monthNumber}&year=${year}&monthly=${monthly}`
+                `?month=${monthNumber}&year=${year}&monthly=${monthly}&repo=${repoToView}`
             );
         }
     }
@@ -501,7 +545,9 @@
 
             const commits = (
                 await paginate(
-                    "https://api.github.com/repos/SerenityOS/serenity/commits",
+                    repoToView === "serenity"
+                        ? "https://api.github.com/repos/SerenityOS/serenity/commits"
+                        : "https://api.github.com/repos/SerenityOS/jakt/commits",
                     parameters
                 )
             ).flat();
