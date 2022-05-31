@@ -49,7 +49,6 @@
     const hasLocalStorage = !!window.localStorage; // This is mostly for opening the page with LibWeb, as it does not currently support localStorage.
 
     const dayFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "full" });
-    const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" });
 
     let currentAccessToken = null;
 
@@ -440,13 +439,29 @@
         }
     }
 
+    const monthNames = [
+        "January",
+        "Feburary",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ];
+
     async function createChangelog() {
         const currentDate = new Date(year, monthNumber - 1, dateNumber);
 
         if (!monthly) {
             dateElement.textContent = `For ${dayFormatter.format(currentDate)}`;
         } else {
-            dateElement.textContent = `For ${monthFormatter.format(currentDate)}`;
+            const monthName = monthNames[monthNumber - 1];
+            dateElement.textContent = `For ${monthName} ${year}`;
         }
 
         noCommitsMessage.classList.add("d-none");
