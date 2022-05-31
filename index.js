@@ -468,20 +468,9 @@
         return `${year}-${month}-${date}`;
     }
 
-    function updateURLQuery() {
-        if (!monthly) {
-            window.history.replaceState(
-                null,
-                null,
-                `?date=${getISODateString()}&monthly=${monthly}&repo=${repoToView}`
-            );
-        } else {
-            window.history.replaceState(
-                null,
-                null,
-                `?month=${monthNumber}&year=${year}&monthly=${monthly}&repo=${repoToView}`
-            );
-        }
+    function formattedCurrentDate() {
+        const currentDate = new Date(year, monthNumber - 1, dateNumber);
+        return dayFormatter.format(currentDate);
     }
 
     const monthNames = [
@@ -499,14 +488,50 @@
         "December",
     ];
 
-    async function createChangelog() {
-        const currentDate = new Date(year, monthNumber - 1, dateNumber);
+    function formattedMonthlyDate() {
+        return `${monthNames[monthNumber - 1]} ${year}`;
+    }
 
+    function repoToViewToProperRepoName() {
+        switch (repoToView) {
+        case "serenity":
+            return "SerenityOS";
+        case "jakt":
+            return "Jakt";
+        default:
+            return "Unknown Repo - Please Report";
+        }
+    }
+
+    function updateURLQuery() {
         if (!monthly) {
-            dateElement.textContent = `For ${dayFormatter.format(currentDate)}`;
+            const title = `${repoToViewToProperRepoName()} Changelog for ${formattedCurrentDate()}`;
+
+            window.history.replaceState(
+                null,
+                title,
+                `?date=${getISODateString()}&monthly=${monthly}&repo=${repoToView}`
+            );
+
+            document.title = title;
         } else {
-            const monthName = monthNames[monthNumber - 1];
-            dateElement.textContent = `For ${monthName} ${year}`;
+            const title = `${repoToViewToProperRepoName()} Changelog for ${formattedMonthlyDate()}`;
+
+            window.history.replaceState(
+                null,
+                title,
+                `?month=${monthNumber}&year=${year}&monthly=${monthly}&repo=${repoToView}`
+            );
+
+            document.title = title;
+        }
+    }
+
+    async function createChangelog() {
+        if (!monthly) {
+            dateElement.textContent = `For ${formattedCurrentDate()}`;
+        } else {
+            dateElement.textContent = `For ${formattedMonthlyDate()}`;
         }
 
         noCommitsMessage.classList.add("d-none");
