@@ -473,22 +473,22 @@
         return dayFormatter.format(currentDate);
     }
 
-    const monthNames = [
-        "January",
-        "Feburary",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-    ];
-
     function formattedMonthlyDate() {
+        const monthNames = [
+            "January",
+            "Feburary",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        ];
+
         return `${monthNames[monthNumber - 1]} ${year}`;
     }
 
