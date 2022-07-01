@@ -322,6 +322,7 @@
     };
 
     function changeRepo(newRepo, fromURL = false) {
+        abortFetchIfNeeded();
         repoToView = newRepo;
 
         if (newRepo === "serenity") {
