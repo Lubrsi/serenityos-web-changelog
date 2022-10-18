@@ -129,11 +129,11 @@
 
     function showAppropriateDateButtons() {
         if (monthly) {
-            dailyButtons.classList.add("d-none");
-            monthlyButtons.classList.remove("d-none");
+            hide(dailyButtons);
+            show(monthlyButtons);
         } else {
-            dailyButtons.classList.remove("d-none");
-            monthlyButtons.classList.add("d-none");
+            show(dailyButtons);
+            hide(monthlyButtons);
         }
     }
 
@@ -149,11 +149,11 @@
         const hasAccessToken = window.localStorage.getItem("access-token") !== null;
 
         if (!hasAccessToken) {
-            noAccessTokenAlert.classList.remove("d-none");
-            haveAccessTokenAlert.classList.add("d-none");
+            show(noAccessTokenAlert);
+            hide(haveAccessTokenAlert);
         } else {
-            noAccessTokenAlert.classList.add("d-none");
-            haveAccessTokenAlert.classList.remove("d-none");
+            hide(noAccessTokenAlert);
+            show(haveAccessTokenAlert);
 
             const accessToken = window.localStorage.getItem("access-token");
 
@@ -321,8 +321,8 @@
         });
         tokenFormCollapse.hide();
 
-        noAccessTokenAlert.classList.add("d-none");
-        haveAccessTokenAlert.classList.remove("d-none");
+        hide(noAccessTokenAlert);
+        show(haveAccessTokenAlert);
 
         if (abortedFetch) createChangelog();
     };
@@ -338,8 +338,8 @@
         });
         tokenFormCollapse.hide();
 
-        noAccessTokenAlert.classList.remove("d-none");
-        haveAccessTokenAlert.classList.add("d-none");
+        show(noAccessTokenAlert);
+        hide(haveAccessTokenAlert);
     };
 
     function changeRepo(newRepo, fromURL = false) {
@@ -378,7 +378,7 @@
     repoSelection.onchange = () => changeRepo(repoSelection.value);
 
     function fetchFailed() {
-        loadFailedAlert.classList.remove("d-none");
+        show(loadFailedAlert);
     }
 
     async function getPageNumber(urlWithBaseParameters, pageNumber) {
@@ -559,21 +559,23 @@
             dateElement.textContent = `For ${formattedMonthlyDate()}`;
         }
 
-        noCommitsMessage.classList.add("d-none");
-        loadFailedAlert.classList.add("d-none");
-        loadFailedRateLimitedAlert.classList.add("d-none");
-        partialLoadRateLimitedAlert.classList.add("d-none");
-        loadFailedBadTokenAlert.classList.add("d-none");
-        partialLoadBadTokenAlert.classList.add("d-none");
+        hide([
+            noCommitsMessage,
+            loadFailedAlert,
+            loadFailedRateLimitedAlert,
+            partialLoadRateLimitedAlert,
+            loadFailedBadTokenAlert,
+            partialLoadBadTokenAlert,
+        ]);
 
-        loadingIndicator.classList.remove("d-none");
+        show(loadingIndicator);
 
         if (!hasFetch) {
             disableDateButtons();
             submitAccessTokenButton.disabled = true;
         }
 
-        changelogElement.classList.add("d-none");
+        hide(changelogElement);
         changelogBodyElement.innerHTML = "";
 
         categoryCollapseElements = [];
@@ -601,7 +603,7 @@
                 )
             ).flat();
 
-            loadingIndicator.classList.add("d-none");
+            hide(loadingIndicator);
 
             if (!hasFetch) {
                 enableDateButtons();
@@ -609,7 +611,7 @@
             }
 
             if (commits.length === 0) {
-                noCommitsMessage.classList.remove("d-none");
+                show(noCommitsMessage);
                 return;
             }
 
@@ -621,30 +623,30 @@
                     // If there's only one entry, that means there are no other commits to show.
                     // Show an error and return.
                     if (commits.length === 1) {
-                        loadFailedBadTokenAlert.classList.remove("d-none");
+                        show(loadFailedBadTokenAlert);
                         return;
                     }
 
                     // If there's more than one entry, we can show the partial list.
                     // Show a warning and remove the last "commit", but don't return.
-                    partialLoadBadTokenAlert.classList.remove("d-none");
+                    show(partialLoadBadTokenAlert);
                     commits.pop();
                 } else {
                     // If there's only one entry, that means there are no other commits to show.
                     // Show an error and return.
                     if (commits.length === 1) {
-                        loadFailedRateLimitedAlert.classList.remove("d-none");
+                        show(loadFailedRateLimitedAlert);
                         return;
                     }
 
                     // If there's more than one entry, we can show the partial list.
                     // Show a warning and remove the last "commit", but don't return.
-                    partialLoadRateLimitedAlert.classList.remove("d-none");
+                    show(partialLoadRateLimitedAlert);
                     commits.pop();
                 }
             }
 
-            changelogElement.classList.remove("d-none");
+            show(changelogElement);
 
             const plural = commits.length > 1 ? "s" : "";
             commitCountElement.textContent = `${commits.length} commit${plural}`;
@@ -869,7 +871,7 @@
             if (e.name === "AbortError") return;
 
             console.error(e);
-            loadingIndicator.classList.add("d-none");
+            hide(loadingIndicator);
             fetchFailed();
             enableDateButtons();
         }
