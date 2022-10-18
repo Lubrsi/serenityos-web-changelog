@@ -46,9 +46,11 @@
     const serenityCommitLogLink = document.getElementById("serenity-commit-log-link");
     const jaktCommitLogLink = document.getElementById("jakt-commit-log-link");
     const ladybirdCommitLogLink = document.getElementById("ladybird-commit-log-link");
+    const commitLogLinks = [serenityCommitLogLink, jaktCommitLogLink, ladybirdCommitLogLink];
     const serenityDiscordChannels = document.getElementById("serenity-discord-channels");
     const jaktDiscordChannels = document.getElementById("jakt-discord-channels");
     const ladybirdDiscordChannels = document.getElementById("ladybird-discord-channels");
+    const discordChannels = [serenityDiscordChannels, jaktDiscordChannels, ladybirdDiscordChannels];
 
     const numCommitsPerPage = 100;
     const categoryRegex = /(^\S[^"\r\n:]*?):(?!\^\)|:).+/;
@@ -107,6 +109,22 @@
 
     if (monthly) {
         monthlyToggleCheckbox.checked = true;
+    }
+
+    function hide(elementOrElements) {
+        if (Array.isArray(elementOrElements)) {
+            elementOrElements.forEach(element => element.classList.add("d-none"));
+        } else {
+            elementOrElements.classList.add("d-none");
+        }
+    }
+
+    function show(elementOrElements) {
+        if (Array.isArray(elementOrElements)) {
+            elementOrElements.forEach(element => element.classList.remove("d-none"));
+        } else {
+            elementOrElements.classList.remove("d-none");
+        }
     }
 
     function showAppropriateDateButtons() {
@@ -328,33 +346,20 @@
         abortFetchIfNeeded();
         repoToView = newRepo;
 
+        hide(commitLogLinks);
+        hide(discordChannels);
         if (newRepo === "serenity") {
-            jaktCommitLogLink.classList.add("d-none");
-            jaktDiscordChannels.classList.add("d-none");
-            ladybirdCommitLogLink.classList.add("d-none");
-            ladybirdDiscordChannels.classList.add("d-none");
-            serenityCommitLogLink.classList.remove("d-none");
-            serenityDiscordChannels.classList.remove("d-none");
+            show([serenityCommitLogLink, serenityDiscordChannels]);
             changelogTitle.innerText = "SerenityOS Changelog";
             projectToDiscuss.innerText = "SerenityOS";
             repoOptionSerenity.selected = true;
         } else if (newRepo === "jakt") {
-            jaktCommitLogLink.classList.remove("d-none");
-            jaktDiscordChannels.classList.remove("d-none");
-            ladybirdCommitLogLink.classList.add("d-none");
-            ladybirdDiscordChannels.classList.add("d-none");
-            serenityCommitLogLink.classList.add("d-none");
-            serenityDiscordChannels.classList.add("d-none");
+            show([jaktCommitLogLink, jaktDiscordChannels]);
             changelogTitle.innerText = "Jakt Changelog";
             projectToDiscuss.innerText = "Jakt";
             repoOptionJakt.selected = true;
         } else {
-            jaktCommitLogLink.classList.add("d-none");
-            jaktDiscordChannels.classList.add("d-none");
-            ladybirdCommitLogLink.classList.remove("d-none");
-            ladybirdDiscordChannels.classList.remove("d-none");
-            serenityCommitLogLink.classList.add("d-none");
-            serenityDiscordChannels.classList.add("d-none");
+            show([ladybirdCommitLogLink, ladybirdDiscordChannels]);
             changelogTitle.innerText = "Ladybird Changelog";
             projectToDiscuss.innerText = "Ladybird";
             repoOptionLadybird.selected = true;
