@@ -42,10 +42,13 @@
     const repoSelection = document.getElementById("repo-selection");
     const repoOptionSerenity = document.getElementById("repo-option-serenity");
     const repoOptionJakt = document.getElementById("repo-option-jakt");
+    const repoOptionLadybird = document.getElementById("repo-option-ladybird");
     const serenityCommitLogLink = document.getElementById("serenity-commit-log-link");
     const jaktCommitLogLink = document.getElementById("jakt-commit-log-link");
+    const ladybirdCommitLogLink = document.getElementById("ladybird-commit-log-link");
     const serenityDiscordChannels = document.getElementById("serenity-discord-channels");
     const jaktDiscordChannels = document.getElementById("jakt-discord-channels");
+    const ladybirdDiscordChannels = document.getElementById("ladybird-discord-channels");
 
     const numCommitsPerPage = 100;
     const categoryRegex = /(^\S[^"\r\n:]*?):(?!\^\)|:).+/;
@@ -328,19 +331,33 @@
         if (newRepo === "serenity") {
             jaktCommitLogLink.classList.add("d-none");
             jaktDiscordChannels.classList.add("d-none");
+            ladybirdCommitLogLink.classList.add("d-none");
+            ladybirdDiscordChannels.classList.add("d-none");
             serenityCommitLogLink.classList.remove("d-none");
             serenityDiscordChannels.classList.remove("d-none");
             changelogTitle.innerText = "SerenityOS Changelog";
             projectToDiscuss.innerText = "SerenityOS";
             repoOptionSerenity.selected = true;
-        } else {
+        } else if (newRepo === "jakt") {
             jaktCommitLogLink.classList.remove("d-none");
             jaktDiscordChannels.classList.remove("d-none");
+            ladybirdCommitLogLink.classList.add("d-none");
+            ladybirdDiscordChannels.classList.add("d-none");
             serenityCommitLogLink.classList.add("d-none");
             serenityDiscordChannels.classList.add("d-none");
             changelogTitle.innerText = "Jakt Changelog";
             projectToDiscuss.innerText = "Jakt";
             repoOptionJakt.selected = true;
+        } else {
+            jaktCommitLogLink.classList.add("d-none");
+            jaktDiscordChannels.classList.add("d-none");
+            ladybirdCommitLogLink.classList.remove("d-none");
+            ladybirdDiscordChannels.classList.remove("d-none");
+            serenityCommitLogLink.classList.add("d-none");
+            serenityDiscordChannels.classList.add("d-none");
+            changelogTitle.innerText = "Ladybird Changelog";
+            projectToDiscuss.innerText = "Ladybird";
+            repoOptionLadybird.selected = true;
         }
 
         updateURLQuery();
@@ -499,6 +516,8 @@
                 return "SerenityOS";
             case "jakt":
                 return "Jakt";
+            case "ladybird":
+                return "Ladybird";
             default:
                 return "Unknown Repo - Please Report";
         }
@@ -572,9 +591,7 @@
 
             const commits = (
                 await paginate(
-                    repoToView === "serenity"
-                        ? "https://api.github.com/repos/SerenityOS/serenity/commits"
-                        : "https://api.github.com/repos/SerenityOS/jakt/commits",
+                    `https://api.github.com/repos/SerenityOS/${repoToView}/commits`,
                     parameters
                 )
             ).flat();
