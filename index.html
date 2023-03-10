@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <!-- Makes all links and form submissions default to opening a new tab -->
+        <base target="_blank" />
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>SerenityOS Changelog</title>
@@ -171,19 +173,19 @@
 
             <p>
                 This is an easy-to-read version of the
-                <a href="https://github.com/SerenityOS/serenity/commits/master" target="_blank" rel="noopener noreferrer" id="serenity-commit-log-link">SerenityOS commit log.</a>
-                <a href="https://github.com/SerenityOS/jakt/commits/main" target="_blank" rel="noopener noreferrer" id="jakt-commit-log-link" class="d-none">Jakt commit log.</a>
-                <a href="https://github.com/SerenityOS/ladybird/commits/main" target="_blank" rel="noopener noreferrer" id="ladybird-commit-log-link" class="d-none">Ladybird commit log.</a>
+                <a href="https://github.com/SerenityOS/serenity/commits/master" rel="noopener noreferrer" id="serenity-commit-log-link">SerenityOS commit log.</a>
+                <a href="https://github.com/SerenityOS/jakt/commits/main" rel="noopener noreferrer" id="jakt-commit-log-link" class="d-none">Jakt commit log.</a>
+                <a href="https://github.com/SerenityOS/ladybird/commits/main" rel="noopener noreferrer" id="ladybird-commit-log-link" class="d-none">Ladybird commit log.</a>
                 It fetches a list of commits for a given day or month and categorises the commits based on the subsystem they target.
             </p>
 
             <p>
-                The source code for this website can be found <a href="https://github.com/Lubrsi/serenityos-web-changelog" target="_blank" rel="noopener noreferrer">here.</a>
+                The source code for this website can be found <a href="https://github.com/Lubrsi/serenityos-web-changelog" rel="noopener noreferrer">here.</a>
             </p>
 
             <p>
                 If you wish to discuss <span id="project-to-discuss">SerenityOS</span> and its development, feel free to get in touch on the
-                <a href="https://discord.gg/serenityos" target="_blank" rel="noopener noreferrer">SerenityOS Discord server.</a>
+                <a href="https://discord.gg/serenityos" rel="noopener noreferrer">SerenityOS Discord server.</a>
                 <span id="serenity-discord-channels">(<code>#serenityos</code> or <code>#development</code>)</span>
                 <span id="jakt-discord-channels" class="d-none">(<code>#jakt</code>, <code>#jakt-compiler</code>, <code>#jakt-design</code> or <code>#jakt-tooling</code>)</span>
                 <span id="ladybird-discord-channels" class="d-none">(<code>#js</code>, <code>#browser</code> or <code>#browser-qt</code>)</span>
@@ -217,7 +219,7 @@
 
                     <div class="form-text">
                         Follow the instructions
-                        <a href="https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token" target="_blank" rel="noopener noreferrer">
+                        <a href="https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token" rel="noopener noreferrer">
                             here
                         </a>
                         to generate a personal access token.
@@ -311,7 +313,7 @@
                     </template>
                     <template id="commit-element-template">
                         <li class="d-flex align-items-center">
-                            <a target="_blank" rel="noopener noreferrer"></a>
+                            <a rel="noopener noreferrer"></a>
                             <div class="badge bg-danger ms-2">Revert</div>
                             <button class="btn btn-primary small-button ms-2" type="button" data-bs-toggle="collapse" aria-expanded="false">Details</button>
                         </li>
@@ -330,7 +332,7 @@
                                 <template id="link">
                                     <div class="d-flex align-items-center">
                                         <span class="sha"></span>
-                                        <a target="_blank" rel="noopener noreferrer" class="ms-2 link"></a>
+                                        <a rel="noopener noreferrer" class="ms-2 link"></a>
                                     </div>
                                 </template>
                             </div>
@@ -340,7 +342,7 @@
             </div>
 
             <p class="text-center m-5">
-                Made by <a href="mailto:lukew@serenityos.org">Luke Wilde.</a> (<code>@Lubrsi</code> on <a href="https://discord.gg/serenityos" target="_blank" rel="noopener noreferrer">Discord</a>)
+                Made by <a href="mailto:lukew@serenityos.org">Luke Wilde.</a> (<code>@Lubrsi</code> on <a href="https://discord.gg/serenityos" rel="noopener noreferrer">Discord</a>)
             </p>
         </div>
 
